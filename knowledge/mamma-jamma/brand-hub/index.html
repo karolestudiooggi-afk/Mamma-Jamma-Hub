@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mamma Jamma — O que a IA sabe sobre a marca | Domani Agentes</title>
+<style>
+  :root {
+    /* Paleta oficial Mamma Jamma (do design system do cliente) */
+    --nero: #231f20;
+    --nero-700: #3a3334;
+    --nero-500: #6b6263;
+    --bianco: #fbf9f6;
+    --crema: #ebdfc9;
+    --crema-light: #f3ebd9;
+    --verde: #2b4f44;
+    --oro: #c69633;
+    --oro-light: #e0b760;
+    --line: rgba(35,31,32,.12);
+    --line-gold: rgba(198,150,51,.55);
+    /* Domani (plataforma) */
+    --domani: #e56d23;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: "Raleway","Helvetica Neue",-apple-system,sans-serif;
+    background: var(--bianco);
+    color: var(--nero);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .serif { font-family: "EB Garamond","Iowan Old Style",Georgia,serif; }
+
+  /* ---- Header ---- */
+  header {
+    background: var(--nero);
+    color: var(--bianco);
+    padding: 56px 32px 48px;
+    text-align: center;
+    border-bottom: 3px solid var(--oro);
+  }
+  header .kicker {
+    font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--oro-light); margin-bottom: 20px;
+  }
+  header h1 {
+    font-family: "EB Garamond",Georgia,serif;
+    font-size: clamp(40px,7vw,80px); font-weight: 700; line-height: .98;
+    letter-spacing: -.01em; margin-bottom: 16px;
+  }
+  header h1 em { font-style: italic; color: var(--oro-light); }
+  header p { max-width: 620px; margin: 0 auto; color: rgba(251,249,246,.75); font-size: 17px; }
+  .header-logo { height: 54px; margin-bottom: 28px; }
+
+  /* ---- Nav sticky ---- */
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(251,249,246,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    display: flex; gap: 4px; padding: 12px 20px; overflow-x: auto;
+    justify-content: center; flex-wrap: wrap;
+  }
+  nav a {
+    font-size: 13px; font-weight: 600; text-decoration: none; color: var(--nero-500);
+    padding: 8px 14px; border-radius: 999px; white-space: nowrap; transition: .18s;
+  }
+  nav a:hover { background: var(--crema); color: var(--nero); }
+
+  /* ---- Layout ---- */
+  main { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 64px 0; border-bottom: 1px solid var(--line); }
+  section:last-child { border-bottom: none; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--oro); font-weight: 700; margin-bottom: 12px;
+  }
+  h2 {
+    font-family: "EB Garamond",Georgia,serif; font-size: clamp(30px,4vw,46px);
+    font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; line-height: 1.08;
+  }
+  h2 em { font-style: italic; color: var(--verde); }
+  .section-sub { color: var(--nero-500); font-size: 16px; margin-bottom: 36px; max-width: 640px; }
+  h3 { font-size: 19px; font-weight: 700; margin: 28px 0 12px; }
+
+  .card {
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    padding: 28px 30px; margin-bottom: 20px;
+  }
+  .grid { display: grid; gap: 20px; }
+  .grid-2 { grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); }
+
+  p.body { color: var(--nero-700); margin-bottom: 12px; }
+  ul.clean { list-style: none; }
+  ul.clean li { padding: 8px 0 8px 26px; position: relative; color: var(--nero-700); border-bottom: 1px solid var(--line); }
+  ul.clean li:last-child { border-bottom: none; }
+  ul.clean li::before { content: "—"; position: absolute; left: 0; color: var(--oro); font-weight: 700; }
+
+  /* ---- Logos ---- */
+  .logo-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 20px; }
+  .logo-box { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .logo-box .frame { padding: 44px; display: flex; align-items: center; justify-content: center; min-height: 180px; }
+  .logo-box .frame img { max-width: 100%; max-height: 100px; }
+  .logo-box .frame.dark { background: var(--nero); }
+  .logo-box .frame.cream { background: var(--crema-light); }
+  .logo-box .cap { padding: 12px 18px; font-size: 13px; color: var(--nero-500); border-top: 1px solid var(--line); background:#fff; }
+
+  /* ---- Colors ---- */
+  .swatches { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 14px; }
+  .swatch { border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+  .swatch .chip { height: 96px; }
+  .swatch .meta { padding: 12px 14px; background: #fff; }
+  .swatch .name { font-weight: 700; font-size: 14px; }
+  .swatch .hex { font-size: 13px; color: var(--nero-500); font-family: monospace; text-transform: uppercase; }
+  .swatch .role { font-size: 12px; color: var(--nero-500); margin-top: 2px; }
+
+  /* ---- Type specimens ---- */
+  .type-row { padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .type-row:last-child { border-bottom: none; }
+  .type-label { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--nero-500); margin-bottom: 8px; }
+  .specimen-display { font-family: "EB Garamond",Georgia,serif; font-size: 44px; line-height: 1.05; }
+  .specimen-body { font-family: "Raleway",sans-serif; font-size: 22px; }
+
+  /* ---- Regra de ouro (destaque) ---- */
+  .rule-box {
+    background: var(--nero); color: var(--bianco); border-radius: 12px;
+    padding: 44px 40px; text-align: center; border: 2px solid var(--oro);
+  }
+  .rule-box .big {
+    font-family: "EB Garamond",Georgia,serif; font-size: clamp(26px,3.4vw,38px);
+    font-weight: 700; line-height: 1.15; margin-bottom: 16px;
+  }
+  .rule-box .big em { font-style: italic; color: var(--oro-light); }
+  .rule-box p { color: rgba(251,249,246,.8); max-width: 560px; margin: 0 auto; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 24px; }
+  .pill { font-size: 13px; padding: 6px 14px; border-radius: 999px; }
+  .pill.no { background: rgba(220,80,80,.15); color: #ffb4b4; text-decoration: line-through; }
+  .pill.yes { background: rgba(198,150,51,.18); color: var(--oro-light); }
+
+  /* ---- AI context (o que a IA usa) ---- */
+  .ai-panel { background: var(--nero); color: var(--bianco); border-radius: 12px; overflow: hidden; }
+  .ai-panel .ai-head { padding: 22px 28px; border-bottom: 1px solid rgba(251,249,246,.14); display: flex; align-items: center; gap: 12px; }
+  .ai-panel .ai-head .dot { width: 10px; height: 10px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 10px #4ade80; }
+  .ai-panel .ai-head strong { font-size: 15px; }
+  .ai-panel .ai-head span { font-size: 13px; color: rgba(251,249,246,.6); }
+  .ai-panel pre {
+    padding: 26px 28px; font-family: "SF Mono",Consolas,monospace; font-size: 13px;
+    line-height: 1.7; color: rgba(251,249,246,.85); white-space: pre-wrap; overflow-x: auto;
+  }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 4px 20px; }
+  .kv dt { font-weight: 700; color: var(--verde); }
+  .kv dd { color: var(--nero-700); margin-bottom: 10px; }
+
+  footer { background: var(--nero); color: rgba(251,249,246,.6); text-align: center; padding: 40px 24px; font-size: 13px; }
+  footer strong { color: var(--oro-light); }
+  .tag { display:inline-block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; background:var(--crema); color:var(--nero-700); padding:4px 10px; border-radius:999px; margin-left:8px; vertical-align:middle;}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="assets/logo-horizontal-branco.png" alt="Mamma Jamma" class="header-logo"
+       onerror="this.style.display='none'">
+  <div class="kicker">Domani Agentes · Base de conhecimento da IA</div>
+  <h1>O que a IA sabe sobre a <em>Mamma Jamma</em></h1>
+  <p>Tudo que alimenta o agente de conteúdo — identidade, tom de voz, insumos e regras.
+     Esta é a fonte da verdade que garante que cada texto e imagem saiam com a alma da marca.</p>
+</header>
+
+<nav>
+  <a href="#marca">A marca</a>
+  <a href="#logos">Logos</a>
+  <a href="#cores">Cores</a>
+  <a href="#tipografia">Tipografia</a>
+  <a href="#voz">Tom de voz</a>
+  <a href="#regra">Regra de ouro</a>
+  <a href="#insumos">Insumos</a>
+  <a href="#publico">Público</a>
+  <a href="#ia">O que a IA usa</a>
+</nav>
+
+<main>
+
+  <!-- A MARCA -->
+  <section id="marca">
+    <div class="eyebrow">Quem é</div>
+    <h2>A <em>marca</em></h2>
+    <p class="section-sub">Pizzeria Rustica italiana artesanal, do Grupo Noz, desde 2009.</p>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Essência</h3>
+        <p class="body">Italianidade afetiva encontra força e acolhimento femininos.
+          Inspiração nas "Mammas do Mundo" que acolhem e compartilham. Para a Mamma Jamma,
+          comer é um ato de afeto e união.</p>
+      </div>
+      <div class="card">
+        <h3>Posicionamento</h3>
+        <p class="body">Alta gastronomia acessível: casual dining elevado, energético, com
+          atitude nova-iorquina/industrial. O público quer se sentir "cool como a Mamma" —
+          nunca a "pizzaria da esquina".</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGOS -->
+  <section id="logos">
+    <div class="eyebrow">Identidade visual</div>
+    <h2>Logos</h2>
+    <p class="section-sub">As versões oficiais da logomarca. Preto sobre claro é o padrão;
+      a versão branca é para fundos escuros.</p>
+    <div class="logo-grid">
+      <div class="logo-box">
+        <div class="frame cream"><img src="assets/logo-horizontal.png" alt="Logo horizontal"
+             onerror="this.parentElement.innerHTML='<span style=&quot;color:#6b6263&quot;>logo-horizontal.png</span>'"></div>
+        <div class="cap">Horizontal — preto sobre claro (uso principal)</div>
+      </div>
+      <div class="logo-box">
+        <div class="frame dark"><img src="assets/logo-horizontal-branco.png" alt="Logo branca"
+             onerror="this.parentElement.innerHTML='<span style=&quot;color:#a89e9c&quot;>logo-horizontal-branco.png</span>'"></div>
+        <div class="cap">Horizontal branca — para fundos escuros</div>
+      </div>
+      <div class="logo-box">
+        <div class="frame cream"><img src="assets/logo-vertical.png" alt="Logo vertical"
+             onerror="this.parentElement.innerHTML='<span style=&quot;color:#6b6263&quot;>logo-vertical.png</span>'"></div>
+        <div class="cap">Vertical (stacked) — espaços quadrados</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CORES -->
+  <section id="cores">
+    <div class="eyebrow">Design system</div>
+    <h2>Paleta de <em>cores</em></h2>
+    <p class="section-sub">Preto quente e off-white dominam. Verde-garrafa e dourado são os
+      acentos de assinatura — usados com parcimônia, nunca como fundo dominante.</p>
+
+    <h3>Âncoras</h3>
+    <div class="swatches">
+      <div class="swatch"><div class="chip" style="background:#231f20"></div><div class="meta"><div class="name">Nero</div><div class="hex">#231F20</div><div class="role">Preto quente · dominante</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#fbf9f6;border-bottom:1px solid #eee"></div><div class="meta"><div class="name">Bianco</div><div class="hex">#FBF9F6</div><div class="role">Off-white · fundo</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#ebdfc9"></div><div class="meta"><div class="name">Crema</div><div class="hex">#EBDFC9</div><div class="role">Creme · seção quente</div></div></div>
+    </div>
+
+    <h3>Assinatura <span class="tag">o diferencial</span></h3>
+    <div class="swatches">
+      <div class="swatch"><div class="chip" style="background:#2b4f44"></div><div class="meta"><div class="name">Verde-garrafa</div><div class="hex">#2B4F44</div><div class="role">Acento · CTAs de assinatura</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#c69633"></div><div class="meta"><div class="name">Oro (dourado)</div><div class="hex">#C69633</div><div class="role">Acento premium · pontual</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#143b3d"></div><div class="meta"><div class="name">Teal profundo</div><div class="hex">#143B3D</div><div class="role">Superfície escura alt.</div></div></div>
+    </div>
+  </section>
+
+  <!-- TIPOGRAFIA -->
+  <section id="tipografia">
+    <div class="eyebrow">Design system</div>
+    <h2><em>Tipografia</em></h2>
+    <p class="section-sub">Duas famílias: uma serifada expressiva para títulos, uma sem-serifa
+      versátil para texto. O itálico do display é usado como recurso de marca.</p>
+
+    <div class="card">
+      <div class="type-row">
+        <div class="type-label">Display — Eames Century Modern (serifada)</div>
+        <div class="specimen-display">Venha para a <em style="color:var(--oro)">Mamma</em></div>
+        <p style="color:var(--nero-500);margin-top:8px;font-size:14px">Títulos, wordmark, momentos de destaque. Itálico como assinatura.</p>
+      </div>
+      <div class="type-row">
+        <div class="type-label">Body — Raleway (sem-serifa)</div>
+        <div class="specimen-body">Aqui, cada refeição é uma festa. Massa de fermentação lenta,
+          forno a lenha, ingredientes que contam história.</div>
+        <p style="color:var(--nero-500);margin-top:8px;font-size:14px">Textos, legendas, interface. Pesos do Thin (100) ao Heavy (900).</p>
+      </div>
+      <div class="type-row">
+        <div class="type-label">Italianismos — display itálico</div>
+        <div class="specimen-display" style="font-style:italic;color:var(--verde)">Salute · cin-cin · sapore</div>
+        <p style="color:var(--nero-500);margin-top:8px;font-size:14px">Português primeiro; o italiano é tempero, não a base.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOM DE VOZ -->
+  <section id="voz">
+    <div class="eyebrow">Como fala</div>
+    <h2>Tom de <em>voz</em></h2>
+    <p class="section-sub">Acolhedor, afetivo e sofisticado. Nunca gritado, nunca varejão.</p>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>É assim</h3>
+        <ul class="clean">
+          <li>Acolhedor, informal, afetivo</li>
+          <li>Humor leve e italianidade pontual ("Salute!")</li>
+          <li>Sofisticado e editorial</li>
+          <li>Convida a compartilhar e celebrar</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Nunca é</h3>
+        <ul class="clean">
+          <li>Gritado, apelativo ou de varejão</li>
+          <li>Frio, corporativo ou genérico</li>
+          <li>"Pizzaria da esquina"</li>
+          <li>Urgência de fast-food</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- REGRA DE OURO -->
+  <section id="regra">
+    <div class="eyebrow">A regra inviolável</div>
+    <h2>A Mamma não dá <em>desconto</em></h2>
+    <p class="section-sub">Esta é a regra que a IA nunca quebra. Generosidade se expressa como
+      "presente da casa" — nunca como liquidação.</p>
+    <div class="rule-box">
+      <div class="big">A Mamma nunca faz promoção.<br>Ela oferece <em>presentes da casa</em>.</div>
+      <p>Nada de "% off", "só hoje", "imperdível" ou "corra". A generosidade da Mamma é afeto,
+         não barganha. A IA foi instruída a recusar qualquer linguagem de desconto e traduzir
+         para o universo da casa.</p>
+      <div class="pill-row">
+        <span class="pill no">desconto</span>
+        <span class="pill no">promoção</span>
+        <span class="pill no">% off</span>
+        <span class="pill no">só hoje</span>
+        <span class="pill no">imperdível</span>
+        <span class="pill yes">✓ por nossa conta</span>
+        <span class="pill yes">✓ presente da casa</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSUMOS -->
+  <section id="insumos">
+    <div class="eyebrow">Lastro real</div>
+    <h2><em>Insumos</em> e técnica</h2>
+    <p class="section-sub">Fatos concretos que a IA usa para descrever os produtos — nunca inventa,
+      sempre ancora nestes detalhes reais.</p>
+    <div class="grid grid-3">
+      <div class="card"><h3>Massa</h3><p class="body">Farinha tipo 00 (doppio zero) importada da Itália. Fermentação lenta até 48h. Massa aerada e alveolada.</p></div>
+      <div class="card"><h3>Forno</h3><p class="body">Forno a lenha. "Macchia di leopardo" — as manchas tostadas da borda. Leve defumado, scratch-made.</p></div>
+      <div class="card"><h3>Ingredientes</h3><p class="body">Tomate pelati selecionado, mozzarella fresca de cura especial, azeites extravirgens, calabresa e linguiças artesanais (erva-doce).</p></div>
+      <div class="card"><h3>Pizzas assinadas</h3><p class="body">"Giardino" (chef Tati Lund), "Mamma Quaresma" (chef Flávia Quaresma). Menu dos autores Raimundo Rodrigues + Felipe Biscuola.</p></div>
+      <div class="card"><h3>Cardápio</h3><p class="body">Small Plates, Big Plates, Pizzas, Massas da casa. Almoço, happy hour e brunch de fim de semana.</p></div>
+      <div class="card"><h3>Bar</h3><p class="body">40–50 vinhos, coquetéis italianos, café espresso premium.</p></div>
+    </div>
+  </section>
+
+  <!-- PÚBLICO -->
+  <section id="publico">
+    <div class="eyebrow">Para quem</div>
+    <h2><em>Público</em></h2>
+    <div class="card">
+      <p class="body">Apreciadores de cozinha italiana contemporânea, socializadores, famílias
+        de classe A/B que buscam casual dining elevado e experiências afetivas. Gente que valoriza
+        proveniência, técnica e o prazer de compartilhar a mesa.</p>
+    </div>
+  </section>
+
+  <!-- O QUE A IA USA -->
+  <section id="ia">
+    <div class="eyebrow">Transparência</div>
+    <h2>O que a <em>IA</em> realmente usa</h2>
+    <p class="section-sub">Este é o contexto exato, embutido no sistema, que acompanha cada geração
+      de texto e imagem. É o "cérebro" da marca dentro do Domani Agentes.</p>
+
+    <div class="ai-panel">
+      <div class="ai-head">
+        <span class="dot"></span>
+        <strong>client-context.ts</strong>
+        <span>· injetado em toda geração de conteúdo</span>
+      </div>
+      <pre>Você é o agente de conteúdo EXCLUSIVO da MAMMA JAMMA — pizzaria
+italiana artesanal ("Pizzeria Rustica"), fundada em 2009, do Grupo Noz.
+Este sistema existe SÓ para a Mamma Jamma: todo texto, legenda, ideia ou
+imagem é obrigatoriamente da Mamma Jamma. Nunca gera conteúdo genérico.
+Se o pedido for vago, traz para o universo da Mamma Jamma (a pizza, o
+forno a lenha, a mesa italiana, o afeto de compartilhar).
+
+REGRA DE OURO: a Mamma NÃO dá desconto. Nada de "% off", "só hoje",
+"promoção". Oferece "presentes da casa" — generosidade, não liquidação.
+
+INSUMOS (para lastrear descrições): farinha 00, fermentação 48h, forno
+a lenha (macchia di leopardo), mozzarella fresca, azeites extravirgens.
+
+IMAGEM: fotografia quente, golden-hour, superfícies escuras (madeira,
+pedra — nunca mármore branco). Sempre um elemento da Mamma Jamma. Rostos
+fotorrealistas; preferir foco na comida com pessoas ao fundo.</pre>
+    </div>
+
+    <div class="card" style="margin-top:24px">
+      <h3>Perfil estruturado da marca</h3>
+      <dl class="kv">
+        <dt>Nome</dt><dd>Mamma Jamma</dd>
+        <dt>Setor</dt><dd>Restaurante / Pizzaria artesanal</dd>
+        <dt>Tom</dt><dd>Acolhedor, afetivo, sofisticado, italianidade leve</dd>
+        <dt>Evita</dt><dd>desconto, promoção, off, só hoje, imperdível, corra, barato, liquidação</dd>
+        <dt>Palavras-chave</dt><dd>pizza artesanal, forno a lenha, farinha 00, fermentação lenta, scratch-made, italianidade, afeto, casual dining, vinhos</dd>
+        <dt>Cores</dt><dd>#231F20 · #FBF9F6 · #EBDFC9 · #2B4F44 · #C69633</dd>
+      </dl>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p><strong>Domani Agentes</strong> — base de conhecimento da Mamma Jamma</p>
+  <p style="margin-top:8px">Estúdio Oggi · Esta página reflete o contexto que a IA usa para gerar conteúdo. Atualize <code>client-context.ts</code> e este arquivo juntos.</p>
+</footer>
+
+</body>
+</html>
