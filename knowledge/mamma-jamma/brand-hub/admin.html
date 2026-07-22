@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback do cliente — Brand Hub Mamma Jamma | Oggi</title>
+<style>
+  :root{ --nero:#231f20; --bianco:#fbf9f6; --crema:#ebdfc9; --crema-light:#f3ebd9;
+         --verde:#2b4f44; --oro:#c69633; --line:rgba(35,31,32,.12); --nero-500:#6b6263; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:"Raleway","Helvetica Neue",-apple-system,sans-serif;background:var(--bianco);color:var(--nero);line-height:1.5;}
+  header{background:var(--nero);color:var(--bianco);padding:28px 32px;border-bottom:3px solid var(--oro);}
+  header h1{font-family:"EB Garamond",Georgia,serif;font-size:28px;font-weight:700;}
+  header p{color:rgba(251,249,246,.7);font-size:14px;margin-top:4px;}
+  main{max-width:900px;margin:0 auto;padding:32px 24px;}
+  .login{background:#fff;border:1px solid var(--line);border-radius:10px;padding:32px;max-width:420px;margin:40px auto;text-align:center;}
+  .login h2{font-size:20px;margin-bottom:8px;}
+  .login p{color:var(--nero-500);font-size:14px;margin-bottom:20px;}
+  .login input{width:100%;padding:12px 14px;margin-bottom:10px;border:1px solid var(--line);border-radius:6px;font-size:14px;}
+  .btn{background:var(--nero);color:var(--bianco);border:none;padding:11px 22px;border-radius:6px;font-weight:700;font-size:14px;cursor:pointer;}
+  .btn:hover{background:var(--verde);}
+  .btn.ghost{background:transparent;color:var(--verde);border:1px solid var(--verde);}
+  .filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .filters button{font-size:13px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;color:var(--nero-500);}
+  .filters button.active{background:var(--nero);color:var(--bianco);border-color:var(--nero);}
+  .card{background:#fff;border:1px solid var(--line);border-left:3px solid var(--oro);border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:12px;}
+  .card.resolvido{opacity:.6;border-left-color:var(--verde);}
+  .card .top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px;}
+  .card .sec{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;background:var(--crema);color:var(--nero);padding:3px 10px;border-radius:999px;font-weight:700;}
+  .card .who{font-weight:700;font-size:14px;}
+  .card .when{font-size:12px;color:var(--nero-500);}
+  .card .msg{color:#3a3334;font-size:15px;margin:8px 0;}
+  .card .actions{display:flex;gap:8px;margin-top:8px;}
+  .card .actions button{font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;}
+  .card .actions button:hover{background:var(--crema-light);}
+  .empty{text-align:center;color:var(--nero-500);padding:40px;font-style:italic;}
+  .count{font-size:13px;color:var(--nero-500);margin-bottom:16px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Feedback do cliente</h1>
+  <p>Brand Hub · Mamma Jamma — comentários e sugestões recebidos</p>
+</header>
+<main>
+  <div id="login" class="login">
+    <h2>Acesso da equipe</h2>
+    <p>Entre com o login do Domani para ver e gerenciar os comentários.</p>
+    <input type="email" id="email" placeholder="ai@estudiooggi.com">
+    <input type="password" id="password" placeholder="Senha">
+    <button class="btn" id="loginBtn" style="width:100%">Entrar</button>
+    <p id="loginErr" style="color:#c0392b;margin-top:10px;display:none"></p>
+  </div>
+
+  <div id="panel" style="display:none">
+    <div class="filters">
+      <button data-f="todos" class="active">Todos</button>
+      <button data-f="aberto">Abertos</button>
+      <button data-f="resolvido">Resolvidos</button>
+      <button class="btn ghost" id="logoutBtn" style="margin-left:auto">Sair</button>
+    </div>
+    <div class="count" id="count"></div>
+    <div id="list"></div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* Mesma config do index.html */
+const SUPABASE_URL  = "COLE_AQUI_SUA_PROJECT_URL";
+const SUPABASE_ANON = "COLE_AQUI_SUA_ANON_KEY";
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+let filter = "todos";
+const SEC_LABELS = {marca:"A marca",logos:"Logos",cores:"Cores",tipografia:"Tipografia",voz:"Tom de voz",regra:"Regra de ouro",insumos:"Insumos",publico:"Público",ia:"O que a IA usa"};
+
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const err = document.getElementById("loginErr");
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  if (error) { err.textContent = "Login inválido."; err.style.display="block"; return; }
+  showPanel();
+});
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await db.auth.signOut(); location.reload();
+});
+document.querySelectorAll(".filters button[data-f]").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".filters button[data-f]").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active"); filter = b.dataset.f; render();
+  });
+});
+
+async function showPanel(){
+  document.getElementById("login").style.display="none";
+  document.getElementById("panel").style.display="block";
+  render();
+}
+let _all = [];
+async function render(){
+  const { data, error } = await db.from("brand_hub_feedback").select("*").order("created_at",{ascending:false});
+  if (error){ document.getElementById("list").innerHTML = `<div class="empty">Erro: ${error.message}</div>`; return; }
+  _all = data||[];
+  const rows = _all.filter(c => filter==="todos" ? true : c.status===filter);
+  document.getElementById("count").textContent = `${rows.length} comentário(s)`;
+  if (!rows.length){ document.getElementById("list").innerHTML = `<div class="empty">Nenhum comentário ${filter!=="todos"?"("+filter+")":""} ainda.</div>`; return; }
+  document.getElementById("list").innerHTML = rows.map(c => `
+    <div class="card ${c.status==='resolvido'?'resolvido':''}">
+      <div class="top">
+        <span class="sec">${SEC_LABELS[c.section]||c.section}</span>
+        <span class="when">${new Date(c.created_at).toLocaleString("pt-BR")}</span>
+      </div>
+      <div class="who">${esc(c.author||"Anônimo")}</div>
+      <div class="msg">${esc(c.message)}</div>
+      <div class="actions">
+        ${c.status==='resolvido'
+          ? `<button onclick="setStatus('${c.id}','aberto')">↩ Reabrir</button>`
+          : `<button onclick="setStatus('${c.id}','resolvido')">✓ Marcar resolvido</button>`}
+        <button onclick="del('${c.id}')">🗑 Excluir</button>
+      </div>
+    </div>
+  `).join("");
+}
+async function setStatus(id,status){ await db.from("brand_hub_feedback").update({status}).eq("id",id); render(); }
+async function del(id){ if(confirm("Excluir este comentário?")){ await db.from("brand_hub_feedback").delete().eq("id",id); render(); } }
+function esc(s){ return (s||"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+// se já estiver logado, mostra direto
+db.auth.getSession().then(({data})=>{ if(data.session) showPanel(); });
+</script>
+</body>
+</html>

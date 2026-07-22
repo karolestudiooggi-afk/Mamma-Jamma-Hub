@@ -1,5 +1,5 @@
 ---
-name: social-hub-studio
+name: domani-studio
 description: O Studio — feature núcleo do Social Hub / start-clean-bloom (rota /studio). Cobre os 2 modos (Automático IA / Assistido canvas), o modelo de documento (StudioDoc/Slide/El), o fluxo de geração e o fluxo de publicação via PFM. Use ao mexer em criação de conteúdo, canvas, geração de imagem/vídeo ou publicação.
 ---
 
@@ -32,7 +32,7 @@ Canvas **4:5 (1080×1350, padrão Instagram 2026)**. Preview 360×450 (escala 3�
 
 ## Fluxo de geração
 1. Intenção/prompt no Copilot (ou brief no Automático).
-2. Contexto de marca: `brandTextProfile()` + `brandImageDirective()` (`src/lib/brand.ts`) — ver skill `social-hub-brand-and-providers`.
+2. Contexto de marca: `brandTextProfile()` + `brandImageDirective()` (`src/lib/brand.ts`) — ver skill `domani-brand-and-providers`.
 3. Texto: `generate-content` → posts por plataforma, slides de carrossel, hashtags, imageKeywords.
 4. Visual: imagem por IA (`openai-image` gpt-image-2) ou acervo (`stock-search` Pexels) ou vídeo (`higgsfield-proxy`, com polling `hfStatus`).
 5. Export: `DesignCanvas` → html2canvas → PNG data URLs (sobem pro bucket `media`).

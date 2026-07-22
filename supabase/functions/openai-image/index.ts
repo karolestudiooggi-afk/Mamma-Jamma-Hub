@@ -29,6 +29,27 @@ interface RequestBody {
   model?: string;
   quality?: string;     // gpt-image: "low" | "medium" | "high" | "auto"
   background?: string;  // "transparent" | "opaque" | "auto"
+  /**
+   * Imagem de referência (data URL "data:image/png;base64,..." ou URL http).
+   * Quando enviada, usamos o endpoint de EDIÇÃO da OpenAI: a IA parte da foto
+   * real do cliente (ex.: a pizza dele) em vez de inventar do zero.
+   */
+  referenceImage?: string;
+}
+
+/** Converte data URL ou URL http em Blob, para enviar como arquivo à OpenAI. */
+async function toBlob(src: string): Promise<Blob> {
+  if (src.startsWith("data:")) {
+    const [head, b64] = src.split(",");
+    const mime = head.match(/data:(.*?);/)?.[1] ?? "image/png";
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+  const r = await fetch(src);
+  if (!r.ok) throw new Error(`Não foi possível baixar a imagem de referência (${r.status})`);
+  return await r.blob();
 }
 
 Deno.serve(async (req: Request) => {
@@ -47,7 +68,9 @@ Deno.serve(async (req: Request) => {
     await requireUser(req);
 
     const body: RequestBody = await req.json();
-    const { prompt, size = "1024x1024", n = 1, model, quality, background } = body;
+    const {
+      prompt, size = "1024x1024", n = 1, model, quality, background, referenceImage,
+    } = body;
     // toda imagem herda a direção visual da Mamma Jamma
     const brandedPrompt = `${prompt}\n\n${CLIENT_IMAGE_DIRECTIVE}`;
 
@@ -64,25 +87,50 @@ Deno.serve(async (req: Request) => {
     // costuma estourar esse limite → rebaixamos para "medium" no servidor.
     const safeQuality = quality === "high" ? "medium" : (quality || "medium");
 
-    const payload: Record<string, unknown> = {
-      model: model || OPENAI_IMAGE_MODEL,
-      prompt: brandedPrompt,
-      n,
-      size,
-      quality: safeQuality,
-    };
-    if (background) payload.background = background;
+    const useModel = model || OPENAI_IMAGE_MODEL;
+    let resp: Response;
 
-    console.log(`[openai-image] model=${payload.model} size=${size} n=${n}`);
+    if (referenceImage?.trim()) {
+      // ── COM imagem de referência → endpoint de EDIÇÃO ──────────────
+      // A IA parte da foto enviada pelo cliente (a pizza real dele, por
+      // exemplo) e aplica o pedido + a direção visual da marca.
+      console.log(`[openai-image] EDIT model=${useModel} size=${size}`);
 
-    const resp = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+      const form = new FormData();
+      form.append("model", useModel);
+      form.append("prompt", brandedPrompt);
+      form.append("n", String(n));
+      form.append("size", size);
+      form.append("quality", safeQuality);
+      form.append("image", await toBlob(referenceImage.trim()), "referencia.png");
+
+      resp = await fetch("https://api.openai.com/v1/images/edits", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}` },
+        body: form,
+      });
+    } else {
+      // ── SEM referência → geração normal ────────────────────────────
+      const payload: Record<string, unknown> = {
+        model: useModel,
+        prompt: brandedPrompt,
+        n,
+        size,
+        quality: safeQuality,
+      };
+      if (background) payload.background = background;
+
+      console.log(`[openai-image] model=${payload.model} size=${size} n=${n}`);
+
+      resp = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+    }
 
     if (!resp.ok) {
       const errText = await resp.text();
@@ -105,7 +153,7 @@ Deno.serve(async (req: Request) => {
       )
       .filter(Boolean);
 
-    return new Response(JSON.stringify({ images, model: payload.model }), {
+    return new Response(JSON.stringify({ images, model: useModel }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

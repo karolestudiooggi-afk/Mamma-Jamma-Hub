@@ -2,7 +2,7 @@
  * org.ts — resolução da organização do usuário.
  *
  * Regra atual: quem loga, ganha a própria organização, via a RPC idempotente
- * core.create_org_for_user. Sem instâncias, sem provisionamento por e-mail,
+ * create_org_for_user (schema public). Sem instâncias, sem provisionamento por e-mail,
  * sem estado de "acesso negado".
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -17,12 +17,12 @@ const h = vi.hoisted(() => ({
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: { getSession: vi.fn(async () => h.session) },
-    schema: () => ({
-      rpc: (fn: string, args: unknown) => {
-        h.rpc(fn, args);
-        return Promise.resolve({ data: h.orgId, error: h.rpcError });
-      },
-    }),
+    // As tabelas e funções vivem em `public` (schema padrão) — a chamada é
+    // direta, sem .schema(), o que evita o 406 do PostgREST.
+    rpc: (fn: string, args: unknown) => {
+      h.rpc(fn, args);
+      return Promise.resolve({ data: h.orgId, error: h.rpcError });
+    },
   },
 }));
 

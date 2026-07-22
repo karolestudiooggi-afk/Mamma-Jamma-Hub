@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrandImagePicker } from "@/components/brands/BrandImagePicker";
+import { BrandMaterials } from "@/components/brands/BrandMaterials";
 import { requireOrgId } from "@/lib/org";
 
 interface BrandProfile {
@@ -308,7 +309,7 @@ export default function Brands() {
         <div>
           <h1 className="flex items-center gap-2 text-h2Sm">
             <Building2 className="h-6 w-6 text-primary" />
-            Identidade da <span className="text-gradient-bilhon">Marca</span>
+            Identidade da <span className="text-gradient-domani">Marca</span>
           </h1>
           <p className="mt-1 text-muted-foreground">
             O perfil que a IA usa para gerar todo o conteúdo com a identidade da marca
@@ -437,6 +438,9 @@ export default function Brands() {
           ))}
         </div>
       )}
+
+      {/* Materiais que alimentam a IA */}
+      {!loading && <BrandMaterials brandId={profiles[0]?.id ?? null} />}
 
       {/* Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>

@@ -1,5 +1,5 @@
 ---
-name: social-hub-architecture
+name: domani-architecture
 description: Mapa arquitetural do projeto start-clean-bloom (Social Hub — SaaS multi-tenant de automação de redes sociais, Lovable id 2187fc1f). Use ao planejar QUALQUER mudança/pivô: stack, roteamento, auth, multi-tenancy, fluxo de deploy Lovable, gotcha do project_id e padrão de secrets via Vault. Leia ANTES de mexer em código.
 ---
 
@@ -43,8 +43,8 @@ Lovable só sincroniza/deploya quando recebe um prompt. Push no GitHub sozinho *
 Extração mecânica pura + verificação `tsc` + `eslint` + `npm run build` (sem runtime) + commit+push por arquivo. Arquivos-monstro que ainda restam como dívida técnica: Analytics.tsx, CreateVisual.tsx (se ainda existirem). Sempre verificar verde antes de commitar.
 
 ## Skills irmãs (leia conforme a área)
-- `social-hub-data-model` — tabelas, RLS, Vault, storage.
-- `social-hub-edge-functions` — 15 functions, ativas vs órfãs.
-- `social-hub-studio` — feature núcleo (2 modos, doc model, publish).
-- `social-hub-autopilot` — máquina de estados da automação.
-- `social-hub-brand-and-providers` — marca-raiz + camada de providers (PFM core; Blotato removida).
+- `domani-data-model` — tabelas, RLS, Vault, storage.
+- `domani-edge-functions` — 15 functions, ativas vs órfãs.
+- `domani-studio` — feature núcleo (2 modos, doc model, publish).
+- `domani-autopilot` — máquina de estados da automação.
+- `domani-brand-and-providers` — marca-raiz + camada de providers (PFM core; Blotato removida).

@@ -39,6 +39,7 @@ const GROUPS: NavGroup[] = [
       { to: "/studio", label: "Criador" },
       { to: "/lab", label: "Bancada" },
       { to: "/gallery", label: "Galeria" },
+      { to: "/brands", label: "Marca" },
     ],
   },
   {
@@ -55,6 +56,7 @@ const GROUPS: NavGroup[] = [
     items: [
       { to: "/analytics", label: "Métricas" },
       { to: "/sources", label: "Biblioteca" },
+      { to: "/logs", label: "Logs" },
     ],
   },
   {

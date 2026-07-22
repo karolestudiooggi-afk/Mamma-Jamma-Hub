@@ -1,11 +1,11 @@
 ---
-name: social-hub-autopilot
+name: domani-autopilot
 description: O Autopilot do Social Hub / start-clean-bloom — criador automático de conteúdo (curadoria→confirmação→full-auto). Cobre a máquina de estados (draft→approved→scheduling→active→published), o cron, o pipeline autopilot-run e os hooks/UI. Use ao mexer em automação, agendamento recorrente ou geração em lote.
 ---
 
 # Social Hub — Autopilot (automação de conteúdo)
 
-Rota `/autopilot` (`src/pages/Autopilot.tsx` + `src/components/autopilot/*`). Pesquisa tópicos → gera posts em lote → gera visuais → agenda → publica via PFM, com recorrência e aprovação opcional. Backend: `autopilot-cron` (gatilho periódico) + `autopilot-run` (pipeline). Tabelas em skill `social-hub-data-model`. Plano original em `docs/AUTOPILOT_REFORM.md`.
+Rota `/autopilot` (`src/pages/Autopilot.tsx` + `src/components/autopilot/*`). Pesquisa tópicos → gera posts em lote → gera visuais → agenda → publica via PFM, com recorrência e aprovação opcional. Backend: `autopilot-cron` (gatilho periódico) + `autopilot-run` (pipeline). Tabelas em skill `domani-data-model`. Plano original em `docs/AUTOPILOT_REFORM.md`.
 
 ## Máquina de estados (`autopilot_calendars.status`)
 ```

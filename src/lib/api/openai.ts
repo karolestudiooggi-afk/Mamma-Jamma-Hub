@@ -12,6 +12,12 @@ export interface OpenAiImageParams {
   model?: string;
   quality?: "low" | "medium" | "high" | "auto";
   background?: "transparent" | "opaque" | "auto";
+  /**
+   * Foto de referência enviada pelo cliente (data URL ou URL pública).
+   * Quando informada, a IA parte dessa imagem em vez de criar do zero —
+   * útil quando o cliente já tem a foto do produto e quer usá-la como base.
+   */
+  referenceImage?: string;
 }
 
 export interface OpenAiImageResult {

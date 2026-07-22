@@ -1,5 +1,5 @@
 ---
-name: social-hub-data-model
+name: domani-data-model
 description: Esquema do banco (Supabase/Postgres) do Social Hub / start-clean-bloom — tabelas, colunas, RLS, função get_vault_secret, storage bucket. Use ao mexer em queries, migrations, RLS ou ao planejar mudanças de dados no pivô. Toda tabela é isolada por user_id via RLS.
 ---
 
@@ -15,7 +15,7 @@ Origem: `20260328000001_create_user_configs.sql` (só tinha `blotato_api_key NOT
 - **Legado/órfãs (presentes mas pouco/não usadas):** `anthropic_api_key`, `unsplash_api_key` (Pexels venceu o Unsplash). (`blotato_api_key` foi DROPADA na migration `20260613000001` — Blotato removida.)
 - `brand_name` (default 'Mega Automação'), `brand_logo_url`.
 
-### `brand_profiles` (marca-raiz — ver skill `social-hub-brand-and-providers`)
+### `brand_profiles` (marca-raiz — ver skill `domani-brand-and-providers`)
 Origem `20260328200000`. Colunas: `name`, `description`, `tone` (default 'profissional'), `target_audience`, `industry`, `keywords[]`, `avoid_words[]`, `example_posts[]`, `system_prompt`, `logo_url`, `colors[]`, `is_default` (bool). Adicionadas depois: `handle`, `profile_photo_url`, `website`, `social_links` (jsonb), `values`.
 
 ### `creations` (galeria de mídia gerada)
@@ -32,7 +32,7 @@ Origem `20260328200000`. Colunas: `name`, `description`, `tone` (default 'profis
 
 ### Tabelas do Autopilot (migration `20260409000001_autopilot_tables.sql` + `20260526170000_autopilot_studio_power.sql`)
 - **`autopilot_configs`** (blueprint por marca): `brand_id`→brand_profiles (nullable), `research_topics[]`, `research_urls[]`, `platforms[]`, `social_account_ids[]`, `posts_per_cycle`, `visual_format` ('auto'|'image'|'carousel'|'video'), `content_types[]` (default educativo/inspirador/prático), `recurrence`, `preferred_days[]`, `preferred_times[]`, `timezone`, `is_active`, `requires_approval`, `next_run_at`, `last_run_at`, `image_provider` (default 'openai'), `video_model` (nullable).
-- **`autopilot_calendars`** (1 ciclo/lote): `config_id`→configs (cascade), `cycle_start`, `cycle_end`, `status` (máquina de estados — ver skill `social-hub-autopilot`), `research_results` (jsonb).
+- **`autopilot_calendars`** (1 ciclo/lote): `config_id`→configs (cascade), `cycle_start`, `cycle_end`, `status` (máquina de estados — ver skill `domani-autopilot`), `research_results` (jsonb).
 - **`autopilot_posts`** (post dentro do calendário): `calendar_id`→calendars (cascade), `platform`, `text_content`, `hashtags[]`, `carousel_data` (jsonb), `media_urls[]`, `visual_creation_id`, `scheduled_at`, `pfm_post_id`, `status` (draft|scheduled|published|failed), `error_message`, `source_topic`, `source_url`, `visual_provider` ('openai'|'higgsfield' — só higgsfield é assíncrono/polled).
 
 ## Storage

@@ -21,6 +21,7 @@ const Setup = lazy(() => import("./pages/Setup"));
 const Accounts = lazy(() => import("./pages/Accounts"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 const Sources = lazy(() => import("./pages/Sources"));
+const Logs = lazy(() => import("./pages/Logs"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Brands = lazy(() => import("./pages/Brands"));
@@ -117,6 +118,7 @@ const App = () => (
                     <Route path="/lab" element={<Lab />} />
                     <Route path="/schedule" element={<Schedule />} />
                     <Route path="/sources" element={<Sources />} />
+                    <Route path="/logs" element={<Logs />} />
                     <Route path="/brands" element={<Brands />} />
                     {/* Diagnóstico fundido nas Métricas — redireciona quem tiver link salvo */}
                     <Route path="/insights" element={<Navigate to="/analytics" replace />} />

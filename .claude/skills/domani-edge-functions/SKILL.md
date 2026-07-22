@@ -1,5 +1,5 @@
 ---
-name: social-hub-edge-functions
+name: domani-edge-functions
 description: As 15 edge functions Deno do Social Hub / start-clean-bloom (supabase/functions/*) — o que cada uma faz, qual API externa proxia, de onde tira a chave, e quais estão ativas vs órfãs/inertes. Use ao mexer em backend, adicionar integração ou planejar o que cortar no pivô.
 ---
 
@@ -26,7 +26,7 @@ Todas em Deno (`supabase/functions/<nome>/index.ts`). `config.toml` só declara 
 | **social-analytics** | Apify Actors | header `x-apify-api-token` | Scrapers de perfil (IG/Twitter/TikTok/YouTube/FB/Threads/LinkedIn/Pinterest) + enriquecimento opcional. |
 | **analytics-insights** | OpenAI | env | Analisa métricas → insights em pt-BR. |
 
-## Automação (service role — ver skill `social-hub-autopilot`)
+## Automação (service role — ver skill `domani-autopilot`)
 | Função | Papel |
 |--------|-------|
 | **autopilot-cron** | Job periódico: dispara generate/curate/schedule/check_visuals/confirm nas configs/calendars vencidas. |

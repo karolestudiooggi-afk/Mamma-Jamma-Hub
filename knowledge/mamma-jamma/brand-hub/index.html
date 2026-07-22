@@ -154,6 +154,44 @@
   footer { background: var(--nero); color: rgba(251,249,246,.6); text-align: center; padding: 40px 24px; font-size: 13px; }
   footer strong { color: var(--oro-light); }
   .tag { display:inline-block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; background:var(--crema); color:var(--nero-700); padding:4px 10px; border-radius:999px; margin-left:8px; vertical-align:middle;}
+
+  /* ---- Feedback / comentários ---- */
+  .fb { margin-top: 28px; border-top: 1px dashed var(--line-gold); padding-top: 20px; }
+  .fb-toggle {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    font-size: 13px; font-weight: 700; color: var(--verde);
+    background: var(--verde-wash,#e1e8e3); border: 1px solid var(--line);
+    padding: 8px 16px; border-radius: 999px; transition: .18s;
+  }
+  .fb-toggle:hover { background: var(--crema); }
+  .fb-form { display: none; margin-top: 16px; }
+  .fb-form.open { display: block; }
+  .fb-form input, .fb-form textarea {
+    width: 100%; padding: 12px 14px; margin-bottom: 10px;
+    border: 1px solid var(--line-strong,rgba(35,31,32,.24)); border-radius: 6px;
+    font-family: inherit; font-size: 14px; background: #fff; color: var(--nero);
+  }
+  .fb-form textarea { min-height: 80px; resize: vertical; }
+  .fb-form input:focus, .fb-form textarea:focus { outline: none; border-color: var(--oro); }
+  .fb-send {
+    background: var(--nero); color: var(--bianco); border: none;
+    padding: 10px 22px; border-radius: 6px; font-weight: 700; font-size: 14px;
+    cursor: pointer; transition: .18s;
+  }
+  .fb-send:hover { background: var(--verde); }
+  .fb-send:disabled { opacity: .5; cursor: default; }
+  .fb-list { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .fb-item {
+    background: var(--crema-light); border-left: 3px solid var(--oro);
+    border-radius: 0 6px 6px 0; padding: 12px 16px; font-size: 14px;
+  }
+  .fb-item .who { font-weight: 700; font-size: 13px; }
+  .fb-item .when { font-size: 12px; color: var(--nero-500); font-weight: 400; }
+  .fb-item .msg { color: var(--nero-700); margin-top: 4px; }
+  .fb-item.resolvido { opacity: .6; border-left-color: var(--verde); }
+  .fb-item.resolvido .msg::after { content: " ✓ resolvido"; color: var(--verde); font-size: 12px; font-weight: 700; }
+  .fb-empty { font-size: 13px; color: var(--nero-500); font-style: italic; }
+  .fb-ok { font-size: 13px; color: var(--verde); font-weight: 700; margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -403,6 +441,109 @@ fotorrealistas; preferir foco na comida com pessoas ao fundo.</pre>
   <p><strong>Domani Agentes</strong> — base de conhecimento da Mamma Jamma</p>
   <p style="margin-top:8px">Estúdio Oggi · Esta página reflete o contexto que a IA usa para gerar conteúdo. Atualize <code>client-context.ts</code> e este arquivo juntos.</p>
 </footer>
+
+<!-- ================= SISTEMA DE COMENTÁRIOS ================= -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* =====================================================================
+   CONFIGURAÇÃO — preencha com os dados do seu Supabase
+   (Settings → API → Project URL e a chave "anon public")
+   ===================================================================== */
+const SUPABASE_URL  = "COLE_AQUI_SUA_PROJECT_URL";      // ex: https://mbtlouowknphllgwfgit.supabase.co
+const SUPABASE_ANON = "COLE_AQUI_SUA_ANON_KEY";         // a chave "anon public"
+/* ===================================================================== */
+
+const _cfgOk = SUPABASE_URL.startsWith("http") && SUPABASE_ANON.length > 20;
+const db = _cfgOk ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+// Lista de seções que recebem comentário (id da <section> + rótulo)
+const SECTIONS = [
+  ["marca","A marca"], ["logos","Logos"], ["cores","Cores"],
+  ["tipografia","Tipografia"], ["voz","Tom de voz"], ["regra","Regra de ouro"],
+  ["insumos","Insumos"], ["publico","Público"], ["ia","O que a IA usa"],
+];
+
+function fmtDate(iso){
+  try { return new Date(iso).toLocaleString("pt-BR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}); }
+  catch { return ""; }
+}
+
+// Injeta o bloco de feedback no fim de cada seção
+SECTIONS.forEach(([id,label]) => {
+  const sec = document.getElementById(id);
+  if (!sec) return;
+  const box = document.createElement("div");
+  box.className = "fb";
+  box.innerHTML = `
+    <button class="fb-toggle" data-sec="${id}">💬 Comentar ou sugerir mudança em "${label}"</button>
+    <div class="fb-form" id="form-${id}">
+      <input type="text" placeholder="Seu nome" class="fb-author" maxlength="120">
+      <textarea placeholder="Escreva aqui sua sugestão ou o que gostaria de mudar nesta seção..." class="fb-msg" maxlength="2000"></textarea>
+      <button class="fb-send" data-sec="${id}">Enviar comentário</button>
+      <div class="fb-ok" style="display:none">✓ Comentário enviado! Obrigado.</div>
+    </div>
+    <div class="fb-list" id="list-${id}"></div>
+  `;
+  sec.appendChild(box);
+});
+
+// Abrir/fechar formulário
+document.querySelectorAll(".fb-toggle").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.getElementById("form-"+btn.dataset.sec).classList.toggle("open");
+  });
+});
+
+// Enviar comentário
+document.querySelectorAll(".fb-send").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const sec = btn.dataset.sec;
+    const form = document.getElementById("form-"+sec);
+    const author = form.querySelector(".fb-author").value.trim();
+    const message = form.querySelector(".fb-msg").value.trim();
+    if (!message) { form.querySelector(".fb-msg").focus(); return; }
+    if (!db) { alert("O sistema de comentários ainda não foi configurado (falta a chave do Supabase no topo do arquivo)."); return; }
+
+    btn.disabled = true; btn.textContent = "Enviando...";
+    const { error } = await db.from("brand_hub_feedback")
+      .insert({ section: sec, author: author || "Anônimo", message });
+    btn.disabled = false; btn.textContent = "Enviar comentário";
+
+    if (error) { alert("Não foi possível enviar: " + error.message); return; }
+    form.querySelector(".fb-msg").value = "";
+    form.querySelector(".fb-ok").style.display = "block";
+    setTimeout(()=> form.querySelector(".fb-ok").style.display = "none", 3000);
+    loadComments(sec);
+  });
+});
+
+// Carregar comentários de uma seção
+async function loadComments(sec){
+  if (!db) return;
+  const list = document.getElementById("list-"+sec);
+  const { data, error } = await db.from("brand_hub_feedback")
+    .select("*").eq("section", sec).order("created_at",{ascending:false});
+  if (error) { return; }
+  if (!data || !data.length) { list.innerHTML = ""; return; }
+  list.innerHTML = data.map(c => `
+    <div class="fb-item ${c.status==='resolvido'?'resolvido':''}">
+      <div class="who">${escapeHtml(c.author||"Anônimo")} <span class="when">· ${fmtDate(c.created_at)}</span></div>
+      <div class="msg">${escapeHtml(c.message)}</div>
+    </div>
+  `).join("");
+}
+
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// Ao abrir a página, carrega os comentários existentes
+if (db) SECTIONS.forEach(([id]) => loadComments(id));
+else {
+  // Aviso discreto se não configurou ainda
+  console.warn("Brand Hub: configure SUPABASE_URL e SUPABASE_ANON no topo do <script> para ativar os comentários.");
+}
+</script>
 
 </body>
 </html>

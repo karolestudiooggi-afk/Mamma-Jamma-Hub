@@ -1,12 +1,12 @@
 ---
-name: social-hub-brand-and-providers
+name: domani-brand-and-providers
 description: Sistema de marca-raiz (brand-as-root) e a camada de providers (src/lib/api/*) do Social Hub / start-clean-bloom — como a identidade da marca atravessa toda geração, e quais APIs estão ativas (PFM core, Higgsfield, OpenAI, Pexels, Firecrawl). A Blotato foi REMOVIDA por completo (commit 32ae69f). Use ao mexer em geração com marca, integração de provider ou ao decidir o que manter no pivô.
 ---
 
 # Social Hub — Marca-raiz & Providers
 
 ## Marca como raiz (brand-as-root)
-A identidade da marca (logo/nome/handle/paleta/tom/valores) é a **raiz** de toda geração — texto e imagem herdam dela. Tabela `brand_profiles` (skill `social-hub-data-model`), hook `src/hooks/use-brands.ts`.
+A identidade da marca (logo/nome/handle/paleta/tom/valores) é a **raiz** de toda geração — texto e imagem herdam dela. Tabela `brand_profiles` (skill `domani-data-model`), hook `src/hooks/use-brands.ts`.
 
 **Helpers (`src/lib/brand.ts`):**
 - `brandTextProfile(b)` → struct camelCase pro `generate-content` (`{name, tone, targetAudience, industry, keywords, avoidWords, examplePosts, systemPrompt}`).
@@ -20,7 +20,7 @@ A identidade da marca (logo/nome/handle/paleta/tom/valores) é a **raiz** de tod
 **Por onde atravessa:** Studio canvas (cores/overlay) · Copilot (brandTextHint→ai-assist) · generate-content (brandProfile completo) · openai-image/image-search (brandImageDirective) · Autopilot (config.brand_id → generate + visual).
 
 ## Camada de providers (`src/lib/api/*`, barrel `index.ts`)
-Cada módulo embrulha uma edge function (ver skill `social-hub-edge-functions`). Padrão: chave do usuário em memória+localStorage, request roteada ao proxy.
+Cada módulo embrulha uma edge function (ver skill `domani-edge-functions`). Padrão: chave do usuário em memória+localStorage, request roteada ao proxy.
 
 | Módulo | Provider | Status | Funções-chave |
 |--------|----------|--------|---------------|

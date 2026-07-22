@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Loader2, Sparkles, Settings2 } from "lucide-react";
+import { Loader2, Sparkles, Settings2, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ import {
 import { brandImageDirective, brandTextProfile, brandTextHint, brandVideoDirective, brandVoiceDirective, type BrandProfile } from "@/lib/brand";
 import { HF_VIDEO_MODELS } from "@/lib/higgsfield-models";
 import { saveVisualToGallery } from "@/lib/gallery";
+import { logActivity, passosDeGeracao } from "@/lib/activity-log";
+import { carregarContextoDaMarca } from "@/lib/brand-materials";
 import { OutputScreen } from "./OutputScreen";
 import { emptyDoc } from "./StudioProvider";
 import type { StudioDoc, StudioFormat, Slide } from "./types";
@@ -118,6 +120,37 @@ export function AutoStudio({ onEditInCanvas }: { onEditInCanvas: (doc: StudioDoc
   const brand = (brands.find((b) => b.id === brandId) || defaultBrand || null) as BrandProfile | null;
 
   const [prompt, setPrompt] = useState("");
+  // Foto de referência enviada pelo cliente (data URL). Quando existe, a IA
+  // parte dela em vez de criar do zero.
+  const [refImage, setRefImage] = useState<string | null>(null);
+  const [refName, setRefName] = useState("");
+  const [dragging, setDragging] = useState(false);
+
+  const aceitarArquivo = (file?: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Envie um arquivo de imagem (jpg, png…).");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("Imagem muito grande. Use uma de até 20 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setRefImage(String(reader.result));
+      setRefName(file.name);
+      toast.success("Foto adicionada — a IA vai usar como base.");
+    };
+    reader.onerror = () => toast.error("Não consegui ler o arquivo.");
+    reader.readAsDataURL(file);
+  };
+
+  const onPickReference = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    aceitarArquivo(file);
+  };
   const [formatChoice, setFormatChoice] = useState<FormatChoice>("auto");
   const [slideCount, setSlideCount] = useState(6);
   const [aspectChoice, setAspectChoice] = useState<AspectChoice>("4:5");
@@ -152,8 +185,8 @@ export function AutoStudio({ onEditInCanvas }: { onEditInCanvas: (doc: StudioDoc
   // Marca só entra na geração (texto + enriquecimento do prompt de imagem/vídeo)
   // quando a caixa estiver marcada.
   const effectiveBrand = useBrand ? brand : null;
-  const c1 = effectiveBrand?.colors?.[0] || "var(--bl-accent)";
-  const c2 = effectiveBrand?.colors?.[1] || "var(--bl-accent)";
+  const c1 = effectiveBrand?.colors?.[0] || "var(--dm-accent)";
+  const c2 = effectiveBrand?.colors?.[1] || "var(--dm-accent)";
   const grad = `linear-gradient(135deg, ${c1}, ${c2})`;
 
   // Auto-save na galeria. saveVisualToGallery agora faz upload de data: URLs automaticamente.
@@ -204,7 +237,10 @@ export function AutoStudio({ onEditInCanvas }: { onEditInCanvas: (doc: StudioDoc
       total > 1 ? `Inclua um indicador discreto "${idx + 1}/${total}".` : "",
       effectiveBrand ? "Use a paleta da marca." : "",
     ].filter(Boolean).join("\n\n");
-    const { images } = await generateOpenAiImage({ prompt, size, quality: "medium", n: 1 });
+    const { images } = await generateOpenAiImage({
+      prompt, size, quality: "medium", n: 1,
+      ...(refImage ? { referenceImage: refImage } : {}),
+    });
     const raw = images?.[0];
     if (!raw) return undefined;
     try { return await fitToAspect(raw, target.ratio); } catch { return raw; }
@@ -344,6 +380,7 @@ Responda APENAS JSON: { "narracao": "<fala completa em pt-BR>", "cena": "<descri
   const handleGenerate = async () => {
     if (!prompt.trim()) { toast.error("Descreva o que você quer criar."); return; }
     setGenerating(true); setProgress("Interpretando seu pedido…"); setDoc(null);
+    let materiaisUsados: string[] = [];
     try {
       const brief = await parseBrief(prompt.trim());
       // Formato escolhido pelo usuário tem prioridade sobre o que a IA inferiu.
@@ -376,7 +413,13 @@ Responda APENAS JSON: { "narracao": "<fala completa em pt-BR>", "cena": "<descri
       // Contexto do cliente: campo do modo avançado OU uma URL colada no próprio
       // pedido (é o que o usuário fez ao pedir "carrossel de vendas <site>"). Sem
       // isto o resultado saía genérico mesmo com o site no comando.
+      // Materiais que o cliente subiu na tela "Marca" entram como fonte de
+      // verdade — é o que faz o conteúdo sair com os fatos reais da empresa.
+      const mat = await carregarContextoDaMarca();
+      materiaisUsados = mat.usados.map((u) => u.titulo);
+
       let srcContext = advanced && advContext.trim() ? advContext.trim() : "";
+      if (mat.texto) srcContext = srcContext ? `${mat.texto}\n\n${srcContext}` : mat.texto;
       if (!srcContext) {
         const urlInPrompt = prompt.match(/https?:\/\/[^\s]+/i)?.[0];
         if (urlInPrompt) {
@@ -484,8 +527,36 @@ Responda APENAS JSON: { "narracao": "<fala completa em pt-BR>", "cena": "<descri
       setDoc(finalDoc);
       toast.success("Criação pronta!");
       autoSave(finalDoc);
+
+      // Registra no histórico ("Logs") o caminho que a IA percorreu.
+      const materiais: string[] = [...materiaisUsados];
+      if (refImage) materiais.push(`Foto enviada por você (${refName || "imagem"})`);
+      void logActivity({
+        action: "gerar_texto",
+        title: slides.length > 1 ? "Carrossel criado" : "Publicação criada",
+        summary: `${brief.topic || prompt.trim().slice(0, 80)}`,
+        steps: [
+          ...passosDeGeracao({
+            pedido: prompt.trim(),
+            marca: effectiveBrand?.name,
+            materiais,
+            tipo: "texto",
+          }),
+          {
+            titulo: "Montou a publicação",
+            detalhe: `Gerou ${slides.length} ${slides.length > 1 ? "imagens" : "imagem"}, a legenda e ${(res.hashtags || []).length} hashtags.`,
+          },
+        ],
+        sources: materiais,
+      });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao gerar");
+      void logActivity({
+        action: "gerar_texto",
+        title: "Criação não concluída",
+        summary: e instanceof Error ? e.message : "Erro ao gerar",
+        status: "erro",
+      });
     } finally {
       if (!pollRef.current) { setGenerating(false); setProgress(""); }
     }
@@ -557,7 +628,7 @@ Responda APENAS JSON: { "narracao": "<fala completa em pt-BR>", "cena": "<descri
           <Sparkles className="h-3.5 w-3.5 text-primary" /> Studio
         </p>
         <h1 className="mt-2 text-h2Sm md:text-h2 text-ink">
-          O que vamos <span className="text-gradient-bilhon">publicar</span> hoje?
+          O que vamos <span className="text-gradient-domani">publicar</span> hoje?
         </h1>
         {brands.length > 1 ? (
           <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
@@ -595,6 +666,58 @@ Responda APENAS JSON: { "narracao": "<fala completa em pt-BR>", "cena": "<descri
           disabled={generating}
           autoFocus
         />
+
+        {/* Foto de referência: o cliente sobe a foto real do produto e a IA
+            parte dela, em vez de inventar do zero. */}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            aceitarArquivo(e.dataTransfer.files?.[0]);
+          }}
+          className={`rounded-2xl border border-dashed p-3 transition-colors ${
+            dragging ? "border-primary bg-primary/5" : "border-border"
+          }`}
+        >
+          {refImage ? (
+            <div className="flex items-center gap-3">
+              <img
+                src={refImage}
+                alt="Referência"
+                className="h-16 w-16 rounded-lg object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{refName || "Foto de referência"}</p>
+                <p className="text-xs text-muted-foreground">
+                  A IA vai partir desta foto para criar.
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setRefImage(null); setRefName(""); }}
+                disabled={generating}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <label className="flex cursor-pointer items-center justify-center gap-2 py-2 text-sm text-muted-foreground hover:text-foreground">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={generating}
+                onChange={onPickReference}
+              />
+              <ImagePlus className="h-4 w-4" />
+              {dragging ? "Solte a imagem aqui" : "Arraste uma foto aqui ou clique para escolher"}
+              <span className="text-xs">(opcional)</span>
+            </label>
+          )}
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {EXAMPLES.map((ex) => (
             <button key={ex} onClick={() => setPrompt(ex)} disabled={generating} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-accent">
