@@ -71,35 +71,53 @@ espresso premium.
  * Traduz o design system da marca em instruções para o gerador de imagem.
  */
 export const CLIENT_IMAGE_DIRECTIVE = `
-TRATAMENTO VISUAL — MAMMA JAMMA
+DIREÇÃO DE FOTOGRAFIA — MAMMA JAMMA
 
-Esta diretriz define COMO a imagem deve parecer, não O QUE ela mostra.
-O assunto vem do pedido: se pediram carnaval, faça carnaval; se pediram uma
-taça de vinho sozinha, faça a taça. Nunca troque o assunto pedido por uma
-cena de pizzaria.
+Define COMO fotografar, não O QUE mostrar. O assunto vem do pedido.
 
-O que aplicar sempre (o "olhar" da marca):
-- Luz quente e dourada, de fonte natural ou de chama. Sombras profundas,
-  contraste alto, atmosfera low-key e acolhedora.
-- Superfícies e cenário naturais: madeira rústica, pedra, ferro, linho, barro.
-  Nada de fundo branco chapado, mármore claro ou cenário corporativo frio.
-- Paleta: preto quente (#231f20) e off-white (#fbf9f6) dominando; verde-garrafa
-  (#2b4f44) e dourado (#c69633) como acento pontual.
-- Textura e artesania visíveis — o oposto de industrial e perfeito demais.
-- Fotografia real e apetitosa: lente 50mm f/1.8, profundidade de campo rasa,
-  foco nítido no assunto, iluminação natural quente.
+PADRÃO DE QUALIDADE (o mais importante)
+Fotografia editorial de gastronomia, nível revista. Não é imagem de banco
+genérica: é foto autoral, com textura visível e imperfeição natural.
+- Detalhe macro real: as manchas tostadas da borda (macchia di leopardo),
+  bolhas da fermentação, fios de queijo derretendo, farinha na bancada,
+  gotas de azeite, condensação no copo.
+- Profundidade de campo curta e verdadeira. Foco cravado no ponto de
+  interesse, resto derretendo suavemente.
+- Enquadramentos variados: macro bem perto, prato inteiro visto de cima,
+  ângulo 45°, ambiente amplo. NUNCA repita a mesma composição.
 
-Quando o assunto for comida ou o restaurante, aí sim use os elementos da casa:
-forno a lenha, borda tostada (macchia di leopardo), massa artesanal,
-ingredientes italianos, taças de vinho.
+LUZ — varie conforme o assunto
+- Pratos e produto: luz natural de janela, lateral, suave e clara.
+  Também funciona luz quente de restaurante à noite.
+- Ambiente e pessoas: luz do lugar, âmbar e acolhedora, sem flash.
+- Não force cena escura. Muita coisa da marca é clara e arejada.
 
-Se houver pessoas: rostos fotorrealistas e naturais, pele com textura real,
-expressões genuínas. Prefira 1 ou 2 pessoas, de perfil ou 3/4, com o assunto
-principal nítido em primeiro plano. Nunca rostos deformados ou plásticos.
+SUPERFÍCIES — todas válidas, escolha pela cena
+Madeira rústica de tom médio, mármore claro, pedra, ferro, cerâmica
+artesanal, linho, prato branco. O que não serve é fundo digital chapado.
 
-PROIBIDO: fundo branco ou mármore claro, flash chapado, vermelho saturado de
-pizzaria popular, estética de fast-food, banco de imagens genérico, texto de
-desconto ou promoção, visual corporativo frio, rostos com aparência artificial.
+PALETA
+Preto quente (#231f20), off-white (#fbf9f6) e creme (#ebdfc9) como base.
+Verde-garrafa (#2b4f44) e dourado (#c69633) como acento. A comida traz o
+vermelho do tomate, o verde do manjericão, o dourado do queijo — cores reais,
+não saturadas artificialmente.
+
+QUANDO O ASSUNTO FOR A CASA
+Forno a lenha, massa sendo aberta à mão, ingredientes italianos, taças,
+o salão. Sempre com verdade documental, como se um fotógrafo estivesse lá.
+
+PESSOAS
+Rostos fotorrealistas, pele com textura, expressão genuína, gesto natural
+(servindo, brindando, partindo a pizza). Máximo 2 em foco. Nunca rosto
+plástico, simétrico demais ou de banco de imagens.
+
+TERMINANTEMENTE PROIBIDO
+- Escrever qualquer texto, palavra, letreiro, placa ou logotipo na imagem.
+- Fachada ou letreiro de restaurante com nome escrito.
+- Estética de fast-food, vermelho saturado de pizzaria popular.
+- Fundo digital liso, gradiente artificial, render 3D.
+- Comida perfeita demais, plástica, sem textura.
+- Escuridão sem motivo — sombra é recurso, não regra.
 `.trim();
 
 /** Cores oficiais da marca (referência para materiais e para a IA). */
