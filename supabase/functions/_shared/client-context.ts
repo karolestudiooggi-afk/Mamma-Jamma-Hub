@@ -71,49 +71,35 @@ espresso premium.
  * Traduz o design system da marca em instruções para o gerador de imagem.
  */
 export const CLIENT_IMAGE_DIRECTIVE = `
-INSTRUÇÃO OBRIGATÓRIA — esta é uma imagem para a MAMMA JAMMA (pizzeria rustica
-italiana). NÃO importa o que o pedido descreva: a imagem SEMPRE tem que parecer
-que foi produzida pela Mamma Jamma. Nunca gere algo genérico, de stock, ou que
-poderia ser de qualquer outra marca.
+TRATAMENTO VISUAL — MAMMA JAMMA
 
-Toda imagem DEVE, sem exceção:
-- Ter luz quente, dourada, low-key (golden-hour ou luz de vela/forno). Ambiente
-  aconchegante de trattoria italiana, nunca claro/clínico.
-- Usar superfícies escuras e naturais: madeira rústica, pedra, ferro, mesa
-  escura. NUNCA mármore branco, NUNCA fundo branco/claro chapado.
-- Trazer pelo menos UM elemento concreto do universo da Mamma Jamma, mesmo que
-  o tema não seja comida: forno a lenha aceso, pizza de borda tostada
-  (macchia di leopardo), massa artesanal, ingredientes italianos (tomate,
-  manjericão, mozzarella, azeite), taças de vinho, ambiente da pizzaria.
+Esta diretriz define COMO a imagem deve parecer, não O QUE ela mostra.
+O assunto vem do pedido: se pediram carnaval, faça carnaval; se pediram uma
+taça de vinho sozinha, faça a taça. Nunca troque o assunto pedido por uma
+cena de pizzaria.
+
+O que aplicar sempre (o "olhar" da marca):
+- Luz quente e dourada, de fonte natural ou de chama. Sombras profundas,
+  contraste alto, atmosfera low-key e acolhedora.
+- Superfícies e cenário naturais: madeira rústica, pedra, ferro, linho, barro.
+  Nada de fundo branco chapado, mármore claro ou cenário corporativo frio.
 - Paleta: preto quente (#231f20) e off-white (#fbf9f6) dominando; verde-garrafa
-  (#2b4f44) e dourado (#c69633) só como acento pontual.
-- Estética artesanal, autoral, apetitosa e afetiva ("italianidade afetiva").
+  (#2b4f44) e dourado (#c69633) como acento pontual.
+- Textura e artesania visíveis — o oposto de industrial e perfeito demais.
+- Fotografia real e apetitosa: lente 50mm f/1.8, profundidade de campo rasa,
+  foco nítido no assunto, iluminação natural quente.
 
-Se o pedido for abstrato ou não-alimentar (ex.: "dia dos pais", "boas-festas",
-"segunda-feira"), TRADUZA o tema para o mundo da Mamma Jamma: uma cena na
-pizzaria, uma mesa italiana farta, o forno aceso ao fundo, pessoas partilhando
-comida com afeto — sempre no clima da marca.
+Quando o assunto for comida ou o restaurante, aí sim use os elementos da casa:
+forno a lenha, borda tostada (macchia di leopardo), massa artesanal,
+ingredientes italianos, taças de vinho.
 
-PESSOAS E ROSTOS (importante para evitar rostos deformados):
-- Prefira composições onde o rosto humano NÃO é o centro absoluto: pessoas de
-  perfil, de 3/4, rindo olhando para a comida, mãos servindo/partindo a pizza,
-  brinde de taças, pessoas levemente desfocadas ao fundo (bokeh) com a COMIDA
-  em primeiro plano nítido.
-- Quando houver rostos, que sejam fotorrealistas e naturais: feições simétricas,
-  olhos bem definidos, pele com textura real (não cerosa, não plástica),
-  expressões genuínas e relaxadas. No máximo 1 ou 2 pessoas em foco.
-- Enquadramento fotográfico real: profundidade de campo rasa, foco no assunto
-  principal (a comida, o momento), rostos em segundo plano quando possível.
+Se houver pessoas: rostos fotorrealistas e naturais, pele com textura real,
+expressões genuínas. Prefira 1 ou 2 pessoas, de perfil ou 3/4, com o assunto
+principal nítido em primeiro plano. Nunca rostos deformados ou plásticos.
 
-QUALIDADE: fotografia profissional de gastronomia, realista, alta definição,
-lente 50mm f/1.8, foco nítido no prato, iluminação natural quente. Evite
-aparência de "IA": nada de pele plástica, olhos tortos, dedos extras, feições
-assimétricas ou derretidas.
-
-TERMINANTEMENTE PROIBIDO: fundo branco ou mármore claro, flash chapado por cima,
-vermelho saturado de pizzaria popular, estética de fast-food, banco de imagens
-genérico, texto de desconto/promoção, gradientes como fundo, visual limpo/
-corporativo/minimalista frio, rostos deformados ou com aparência artificial.
+PROIBIDO: fundo branco ou mármore claro, flash chapado, vermelho saturado de
+pizzaria popular, estética de fast-food, banco de imagens genérico, texto de
+desconto ou promoção, visual corporativo frio, rostos com aparência artificial.
 `.trim();
 
 /** Cores oficiais da marca (referência para materiais e para a IA). */
