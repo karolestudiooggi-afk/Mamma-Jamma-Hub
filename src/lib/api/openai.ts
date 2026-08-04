@@ -57,6 +57,28 @@ export async function generateOpenAiImage(params: OpenAiImageParams): Promise<Op
   return response.json();
 }
 
+/**
+ * Edita uma imagem existente a partir de uma instrução (ex: "tira o copo").
+ * Usa /images/edits do gpt-image-1 via a Edge Function hub-edit-image.
+ */
+export async function editOpenAiImage(params: { imageUrl: string; prompt: string; size?: string }): Promise<{ images: string[] }> {
+  const url = `${getSupabaseUrl()}/functions/v1/hub-edit-image`;
+  const headers = await baseHeaders();
+  let response: Response;
+  try {
+    response = await fetch(url, { method: "POST", headers, body: JSON.stringify(params) });
+  } catch {
+    throw new Error("Não foi possível falar com o servidor de edição de imagem.");
+  }
+  if (!response.ok) {
+    let msg: string;
+    try { const e = await response.json(); msg = e.error || `HTTP ${response.status}`; }
+    catch { msg = `HTTP ${response.status}`; }
+    throw new Error(msg);
+  }
+  return response.json();
+}
+
 // ─── Separação de camadas (SAM via fal.ai) ───────────────────────────
 
 export interface SepararCamadasParams {

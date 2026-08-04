@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useBrands } from "@/hooks/use-brands";
 import {
-  generateContent, generateOpenAiImage, searchStockImages, aiAssist,
+  generateContent, generateOpenAiImage, editOpenAiImage, searchStockImages, aiAssist,
   callHiggsfield, hfStatus, hfCancel, type HfGenerationResult,
 } from "@/lib/api";
 import { brandImageDirective, brandTextProfile, brandTextHint, brandVideoDirective, brandVoiceDirective } from "@/lib/brand";
@@ -264,9 +264,18 @@ export function Copilot() {
     try {
       const q = intent.trim() || selectedEl?.text || brand?.industry || brand?.name || "imagem";
       let url: string | undefined;
+      let editou = false;
       if (source === "ai") {
-        const { images } = await generateOpenAiImage({ prompt: [brandImageDirective(brand), q].filter(Boolean).join("\n\n"), size: "1024x1536", quality: "medium", n: 1 });
-        url = images?.[0];
+        const imgAtual = selectedEl?.type === "image" ? (selectedEl as { src?: string }).src : doc.slides[currentSlide]?.bgImage;
+        const instrucao = intent.trim();
+        if (imgAtual && instrucao) {
+          // EDITA a imagem atual a partir do pedido (ex: "tira o copo")
+          const { images } = await editOpenAiImage({ imageUrl: imgAtual, prompt: instrucao });
+          url = images?.[0]; editou = true;
+        } else {
+          const { images } = await generateOpenAiImage({ prompt: [brandImageDirective(brand), q].filter(Boolean).join("\n\n"), size: "1024x1536", quality: "medium", n: 1 });
+          url = images?.[0];
+        }
       } else {
         const { images } = await searchStockImages({ query: q, count: 1, orientation: "squarish" });
         url = images?.[0]?.url;
@@ -274,7 +283,8 @@ export function Copilot() {
       if (!url) { toast.error("Nenhuma imagem."); return; }
       if (selectedEl?.type === "image") patchEl(selectedEl.id, { src: url });
       else patchSlide(currentSlide, { bgImage: url });
-      toast.success("Imagem aplicada");
+      toast.success(editou ? "Imagem editada" : "Imagem aplicada");
+      if (editou) setIntent("");
     } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); } finally { setRefining(null); }
   };
 
@@ -413,7 +423,7 @@ export function Copilot() {
         <div className="card-premium space-y-1.5 p-3">
           <Label className="text-xs">{selectedEl?.type === "image" ? "Imagem do elemento" : "Imagem de fundo do slide"}</Label>
           <div className="flex flex-wrap gap-1.5">
-            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => refineImage("ai")} disabled={!!refining}>{refining === "ai" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <ImagePlus className="mr-1 h-3 w-3" />}Gerar IA</Button>
+            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => refineImage("ai")} disabled={!!refining}>{refining === "ai" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <ImagePlus className="mr-1 h-3 w-3" />}Gerar / Editar IA</Button>
             <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => refineImage("pexels")} disabled={!!refining}>{refining === "pexels" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Search className="mr-1 h-3 w-3" />}Pexels</Button>
           </div>
         </div>
