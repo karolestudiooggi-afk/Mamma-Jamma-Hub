@@ -21,7 +21,7 @@ let _pfmUserKey: string | undefined;
 export function setPfmUserKey(key: string | undefined) { _pfmUserKey = key; }
 export function getPfmUserKey() { return _pfmUserKey; }
 
-const PFM_FUNCTION = "postforme-proxy";
+const PFM_FUNCTION = "hub-postforme-proxy";
 
 async function pfmHeaders(): Promise<Record<string, string>> {
   const headers = await baseHeaders();

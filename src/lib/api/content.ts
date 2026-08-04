@@ -69,7 +69,7 @@ export interface StockSearchParams {
 export async function searchStockImages(
   params: StockSearchParams
 ): Promise<{ images: StockImage[] }> {
-  const url = `${getSupabaseUrl()}/functions/v1/stock-search`;
+  const url = `${getSupabaseUrl()}/functions/v1/hub-stock-search`;
   const cfg = getSavedConfig();
   const headers = await baseHeaders();
   if (cfg.pexelsApiKey) headers["x-pexels-api-key"] = cfg.pexelsApiKey;
@@ -93,7 +93,7 @@ export async function searchStockImages(
 /** Valida uma chave Pexels via stock-search (sem expor a chave no cliente). */
 export async function validatePexelsKey(key: string): Promise<{ valid: boolean; error?: string }> {
   try {
-    const url = `${getSupabaseUrl()}/functions/v1/stock-search`;
+    const url = `${getSupabaseUrl()}/functions/v1/hub-stock-search`;
     const headers = await baseHeaders();
     headers["x-pexels-api-key"] = key;
     const res = await fetch(url, {
@@ -114,7 +114,7 @@ export async function validatePexelsKey(key: string): Promise<{ valid: boolean; 
 export async function generateContent(
   params: GenerateContentParams
 ): Promise<GenerateContentResult> {
-  const url = `${getSupabaseUrl()}/functions/v1/generate-content`;
+  const url = `${getSupabaseUrl()}/functions/v1/hub-generate-content`;
   const headers = await baseHeaders();
 
   const response = await fetch(url, {

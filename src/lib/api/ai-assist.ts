@@ -18,7 +18,7 @@ export interface AiAssistResult {
 }
 
 export async function aiAssist(params: AiAssistParams): Promise<AiAssistResult> {
-  const url = `${getSupabaseUrl()}/functions/v1/ai-assist`;
+  const url = `${getSupabaseUrl()}/functions/v1/hub-ai-assist`;
   const headers = await baseHeaders();
 
   const response = await fetch(url, {

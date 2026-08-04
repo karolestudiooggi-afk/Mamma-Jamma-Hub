@@ -23,7 +23,7 @@ export async function callHiggsfield(
   tool: string,
   args: Record<string, unknown> = {}
 ): Promise<unknown> {
-  const url = `${getSupabaseUrl()}/functions/v1/higgsfield-proxy`;
+  const url = `${getSupabaseUrl()}/functions/v1/hub-higgsfield-proxy`;
   const cfg = getSavedConfig();
   const headers = await baseHeaders();
   if (cfg.higgsFieldApiId) headers["x-higgsfield-api-id"] = cfg.higgsFieldApiId;
@@ -91,7 +91,7 @@ export async function validateHiggsFieldKey(apiId: string, apiSecret: string): P
     return { valid: false, error: "Informe API ID e Secret" };
   }
   try {
-    const url = `${getSupabaseUrl()}/functions/v1/higgsfield-proxy`;
+    const url = `${getSupabaseUrl()}/functions/v1/hub-higgsfield-proxy`;
     const headers = await baseHeaders();
     headers["x-higgsfield-api-id"] = apiId;
     headers["x-higgsfield-api-secret"] = apiSecret;

@@ -8,7 +8,7 @@ export async function runAutopilot(
   action: "generate" | "schedule" | "check_visuals",
   params: { config_id?: string; calendar_id?: string }
 ): Promise<Record<string, unknown>> {
-  const url = `${getSupabaseUrl()}/functions/v1/autopilot-run`;
+  const url = `${getSupabaseUrl()}/functions/v1/hub-autopilot-run`;
   const headers = await baseHeaders();
 
   const response = await fetch(url, {

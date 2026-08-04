@@ -126,7 +126,7 @@ export async function fetchAnalytics(
   accounts: { platform: string; username: string }[],
   enrich = false
 ): Promise<AnalyticsResult> {
-  const url = `${getSupabaseUrl()}/functions/v1/social-analytics`;
+  const url = `${getSupabaseUrl()}/functions/v1/hub-social-analytics`;
   const cfg = getSavedConfig();
   const headers = await baseHeaders();
   if (cfg.apifyApiToken) headers["x-apify-api-token"] = cfg.apifyApiToken;

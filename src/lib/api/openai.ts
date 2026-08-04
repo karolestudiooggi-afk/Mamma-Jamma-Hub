@@ -13,11 +13,10 @@ export interface OpenAiImageParams {
   quality?: "low" | "medium" | "high" | "auto";
   background?: "transparent" | "opaque" | "auto";
   /**
-   * Foto de referência enviada pelo cliente (data URL ou URL pública).
-   * Quando informada, a IA parte dessa imagem em vez de criar do zero —
-   * útil quando o cliente já tem a foto do produto e quer usá-la como base.
+   * Fotos de referência enviadas pelo usuário (data URLs). Quando há alguma,
+   * a IA parte delas em vez de criar do zero. Aceita várias.
    */
-  referenceImage?: string;
+  referenceImages?: string[];
 }
 
 export interface OpenAiImageResult {
@@ -26,7 +25,7 @@ export interface OpenAiImageResult {
 }
 
 export async function generateOpenAiImage(params: OpenAiImageParams): Promise<OpenAiImageResult> {
-  const url = `${getSupabaseUrl()}/functions/v1/openai-image`;
+  const url = `${getSupabaseUrl()}/functions/v1/hub-openai-image`;
   const headers = await baseHeaders();
 
   let response: Response;
@@ -74,7 +73,7 @@ export interface SepararCamadasParams {
 export async function separarCamadas(
   params: SepararCamadasParams,
 ): Promise<{ mascaras: string[] }> {
-  const url = `${getSupabaseUrl()}/functions/v1/separar-camadas`;
+  const url = `${getSupabaseUrl()}/functions/v1/hub-separar-camadas`;
   const headers = await baseHeaders();
 
   let response: Response;

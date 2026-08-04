@@ -14,7 +14,7 @@ export interface ExtractSourceParams {
 }
 
 export async function extractSource(params: ExtractSourceParams): Promise<ContentSource> {
-  const url = `${getSupabaseUrl()}/functions/v1/source-extract`;
+  const url = `${getSupabaseUrl()}/functions/v1/hub-source-extract`;
   const cfg = getSavedConfig();
   const headers = await baseHeaders();
   if (cfg.firecrawlApiKey) headers["x-firecrawl-api-key"] = cfg.firecrawlApiKey;
