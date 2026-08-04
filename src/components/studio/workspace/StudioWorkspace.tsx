@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Sparkles, Undo2, Redo2, Send, Building2, PenSquare, LayoutGrid, Film, Image as ImageIcon,
-  PanelLeft, Quote, ArrowLeft, Star,
+  PanelLeft, Quote, ArrowLeft, Star, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,8 @@ import { Copilot } from "./Copilot";
 import { AssetsRail } from "./AssetsRail";
 import { FlowBar } from "./FlowBar";
 import { PublishDrawer } from "./PublishDrawer";
+import { toast } from "sonner";
+import { prepararCanva } from "@/lib/canva";
 import type { StudioDoc, StudioFormat } from "./types";
 
 const FORMATS: { value: StudioFormat; label: string; icon: typeof PenSquare }[] = [
@@ -84,8 +86,26 @@ function RightRailContent() {
 
 function WorkspaceInner({ onBack }: { onBack?: () => void }) {
   const { brands, defaultBrand } = useBrands();
-  const { doc, set, undo, redo, canUndo, canRedo } = useStudio();
+  const { doc, set, undo, redo, canUndo, canRedo, exportSlides } = useStudio();
   const [publishOpen, setPublishOpen] = useState(false);
+  const [canvaLoading, setCanvaLoading] = useState(false);
+
+  const editarNoCanva = async () => {
+    const win = window.open("about:blank", "_blank");
+    setCanvaLoading(true);
+    try {
+      const urls = await exportSlides();
+      if (!urls.length) { toast.error("Nada para enviar ao Canva ainda."); if (win) win.close(); return; }
+      const url = await prepararCanva(urls, doc.caption || "Mamma Jamma design");
+      if (win) win.location.href = url;
+      else window.location.href = url;
+    } catch (e) {
+      if (win) win.close();
+      toast.error(e instanceof Error ? e.message : "Erro ao abrir o Canva.");
+    } finally {
+      setCanvaLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!doc.brandId && defaultBrand) set({ brandId: defaultBrand.id }, false);
@@ -141,6 +161,10 @@ function WorkspaceInner({ onBack }: { onBack?: () => void }) {
               <div className="mt-4"><RightRailContent /></div>
             </SheetContent>
           </Sheet>
+          <Button variant="outline" className="ml-1 border-[#00c4cc] text-[#00a4ab] hover:bg-[#e6fbfc] hover:text-[#008b91]" onClick={editarNoCanva} disabled={canvaLoading} title="Abrir esta arte no editor do Canva (em nova aba)">
+            {canvaLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PenSquare className="mr-2 h-4 w-4" />}
+            <span className="hidden sm:inline">Editar no Canva</span>
+          </Button>
           <Button className="ml-1 bg-gradient-to-r from-primary/90 via-primary/60 to-primary/30" onClick={() => setPublishOpen(true)}>
             <Send className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">Postar / Agendar</span>
           </Button>
