@@ -65,7 +65,10 @@ export async function baseHeaders(): Promise<Record<string, string>> {
   };
 }
 
-/** URL completa de uma Edge Function pelo nome da pasta em supabase/functions/. */
+/** URL completa de uma Edge Function pelo nome da pasta em supabase/functions/.
+ *  O Mamma reusa as funções compartilhadas do projeto, que têm prefixo `hub-`.
+ *  Nomes que já vêm com prefixo próprio (canva-, mamma-) são respeitados. */
 export function fnUrl(name: string): string {
-  return `${getSupabaseUrl()}/functions/v1/${name}`;
+  const prefixed = /^(hub-|mamma-|canva-)/.test(name) ? name : `hub-${name}`;
+  return `${getSupabaseUrl()}/functions/v1/${prefixed}`;
 }
