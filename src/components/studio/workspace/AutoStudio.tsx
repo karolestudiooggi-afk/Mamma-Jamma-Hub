@@ -120,6 +120,7 @@ export function AutoStudio({ onEditInCanvas }: { onEditInCanvas: (doc: StudioDoc
   const brand = (brands.find((b) => b.id === brandId) || defaultBrand || null) as BrandProfile | null;
 
   const [prompt, setPrompt] = useState("");
+  const [refImages, setRefImages] = useState<{ src: string; name: string }[]>([]);
   // Foto de referência enviada pelo cliente (data URL). Quando existe, a IA
   // parte dela em vez de criar do zero.
   const [refImage, setRefImage] = useState<string | null>(null);
