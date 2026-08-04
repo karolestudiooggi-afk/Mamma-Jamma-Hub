@@ -5,7 +5,7 @@
  */
 import { useEffect, useState } from "react";
 import {
-  Send, CalendarClock, Loader2, CheckCircle2, RotateCcw, PenTool,
+  Send, CalendarClock, Loader2, CheckCircle2, RotateCcw, PenTool, Download,
   ChevronLeft, ChevronRight, Copy, Users, Link2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -184,6 +184,24 @@ export function OutputScreen({
     finally { setSaving(false); }
   };
 
+  const baixarImagem = async () => {
+    const url = media[slideIdx] || media[0];
+    if (!url) { toast.error("Nenhuma imagem para baixar."); return; }
+    try {
+      const resp = await fetch(url);
+      const blob = await resp.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objUrl;
+      a.download = `mamma-jamma-${Date.now()}.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(objUrl);
+      toast.success("Imagem baixada");
+    } catch {
+      window.open(url, "_blank");
+    }
+  };
+
   const editarNoCanva = async () => {
     const win = window.open("about:blank", "_blank");
     setCanvaLoading(true);
@@ -237,6 +255,11 @@ export function OutputScreen({
             </CardContent>
           </Card>
 
+          {!isVideo && (
+            <Button variant="outline" size="sm" className="w-full" onClick={baixarImagem}>
+              <Download className="mr-2 h-4 w-4" /> Baixar imagem
+            </Button>
+          )}
           <Button variant="outline" size="sm" className="w-full" onClick={handleSaveGallery} disabled={saving}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />} Salvar na galeria
           </Button>

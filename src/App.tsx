@@ -27,6 +27,7 @@ const Gallery = lazy(() => import("./pages/Gallery"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Brands = lazy(() => import("./pages/Brands"));
 const Lab = lazy(() => import("./pages/Lab"));
+const Content = lazy(() => import("./pages/Content"));
 const Studio = lazy(() => import("./pages/Studio"));
 const Autopilot = lazy(() => import("./pages/Autopilot"));
 const Admin = lazy(() => import("./pages/Admin"));
@@ -134,6 +135,7 @@ const App = () => (
                     <Route path="/lab" element={<Lab />} />
                     <Route path="/schedule" element={<Schedule />} />
                     <Route path="/sources" element={<Sources />} />
+                    <Route path="/content" element={<Content />} />
                     <Route path="/logs" element={<Logs />} />
                     <Route path="/brands" element={<Brands />} />
                     {/* Diagnóstico fundido nas Métricas — redireciona quem tiver link salvo */}

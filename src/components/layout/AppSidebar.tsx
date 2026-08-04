@@ -56,6 +56,7 @@ const GROUPS: NavGroup[] = [
     items: [
       { to: "/analytics", label: "Métricas" },
       { to: "/sources", label: "Biblioteca" },
+      { to: "/content", label: "Conteúdo" },
       { to: "/logs", label: "Logs" },
     ],
   },

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Sparkles, Undo2, Redo2, Send, Building2, PenSquare, LayoutGrid, Film, Image as ImageIcon,
-  PanelLeft, Quote, ArrowLeft, Star, Loader2,
+  PanelLeft, Quote, ArrowLeft, Star, Loader2, Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -107,6 +107,27 @@ function WorkspaceInner({ onBack }: { onBack?: () => void }) {
     }
   };
 
+  // Baixa a arte (todos os slides) pro computador.
+  const baixar = async () => {
+    try {
+      const urls = await exportSlides();
+      if (!urls.length) { toast.error("Nada para baixar ainda."); return; }
+      for (let i = 0; i < urls.length; i++) {
+        const resp = await fetch(urls[i]);
+        const blob = await resp.blob();
+        const objUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = objUrl;
+        a.download = `mamma-jamma-${Date.now()}-${i + 1}.png`;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(objUrl);
+      }
+      toast.success(urls.length > 1 ? `${urls.length} imagens baixadas` : "Imagem baixada");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao baixar.");
+    }
+  };
+
   useEffect(() => {
     if (!doc.brandId && defaultBrand) set({ brandId: defaultBrand.id }, false);
   }, [defaultBrand, doc.brandId, set]);
@@ -161,6 +182,9 @@ function WorkspaceInner({ onBack }: { onBack?: () => void }) {
               <div className="mt-4"><RightRailContent /></div>
             </SheetContent>
           </Sheet>
+          <Button variant="outline" className="ml-1" onClick={baixar} title="Baixar a arte para o computador">
+            <Download className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">Baixar</span>
+          </Button>
           <Button variant="outline" className="ml-1 border-[#00c4cc] text-[#00a4ab] hover:bg-[#e6fbfc] hover:text-[#008b91]" onClick={editarNoCanva} disabled={canvaLoading} title="Abrir esta arte no editor do Canva (em nova aba)">
             {canvaLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PenSquare className="mr-2 h-4 w-4" />}
             <span className="hidden sm:inline">Editar no Canva</span>
