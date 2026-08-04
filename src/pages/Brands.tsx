@@ -103,9 +103,14 @@ const emptyForm = {
 
 type FormState = typeof emptyForm;
 
+// Limite de marcas por deploy. Mamma Jamma usa VITE_MAX_BRANDS="1" (só a marca deles).
+// Sem definir = ilimitado. 0 = sem limite.
+const MAX_BRANDS = Number(import.meta.env.VITE_MAX_BRANDS) || 0;
+
 export default function Brands() {
   const { user } = useAuth();
   const [profiles, setProfiles] = useState<BrandProfile[]>([]);
+  const atLimit = MAX_BRANDS > 0 && profiles.length >= MAX_BRANDS;
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -208,6 +213,10 @@ export default function Brands() {
   }, [fetchProfiles]);
 
   const openCreate = () => {
+    if (atLimit) {
+      toast.error(`Este cliente permite apenas ${MAX_BRANDS} marca${MAX_BRANDS > 1 ? "s" : ""} cadastrada${MAX_BRANDS > 1 ? "s" : ""}. Exclua a atual para criar outra.`);
+      return;
+    }
     setEditingId(null);
     setForm({ ...emptyForm });
     setKwText(""); setAvoidText(""); setExamplesText("");
@@ -296,6 +305,8 @@ export default function Brands() {
         toast.error("Não foi possível salvar", { description: causa(error) });
       } else toast.success("Perfil atualizado!");
     } else {
+      // Trava de limite de marcas (ex: Mamma Jamma = 1)
+      if (atLimit) { toast.error(`Limite de ${MAX_BRANDS} marca(s) atingido.`); setSaving(false); return; }
       // If first profile, set as default
       if (profiles.length === 0) payload.is_default = true;
       try {
@@ -430,9 +441,11 @@ export default function Brands() {
           size="sm"
           className="bg-gradient-to-r from-primary/90 via-primary/60 to-primary/30"
           onClick={openCreate}
+          disabled={atLimit}
+          title={atLimit ? `Limite de ${MAX_BRANDS} marca(s) atingido` : "Criar novo perfil de marca"}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Novo Perfil
+          Novo Perfil{MAX_BRANDS > 0 ? ` (${profiles.length}/${MAX_BRANDS})` : ""}
         </Button>
       </div>
 
