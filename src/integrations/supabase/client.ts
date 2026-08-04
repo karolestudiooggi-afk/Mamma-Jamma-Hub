@@ -56,10 +56,25 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-// Tabelas agora vivem em `public` (movidas pelo MOVER-PARA-PUBLIC.sql).
-// Usar o schema padrão elimina o header Accept-Profile que causava 406
-// com schemas secundários. Sem db.schema = requisições no schema public.
-export const supabase = createClient<Database>(url, key, {
+/**
+ * Prefixo das tabelas. O Hub usa `hub_` — as tabelas dele vivem no schema
+ * `public` (que a API sempre aceita, sem o 406 dos schemas secundários),
+ * separadas das do Domani Agentes pelo prefixo.
+ *
+ *   Hub      → VITE_TABLE_PREFIX="hub_"  → public.hub_brand_profiles
+ *   Agentes  → sem a variável            → public.brand_profiles
+ */
+const TABLE_PREFIX = (import.meta.env.VITE_TABLE_PREFIX as string) || '';
+
+/**
+ * Schema dedicado. Quando definido (ex: VITE_DB_SCHEMA="sunset"), as tabelas
+ * vivem num schema próprio isolado e o prefixo é dispensado. O schema precisa
+ * estar exposto na API do Supabase (Settings → API → Exposed schemas).
+ */
+const DB_SCHEMA = (import.meta.env.VITE_DB_SCHEMA as string) || '';
+
+const rawClient = createClient<Database>(url, key, {
+  ...(DB_SCHEMA ? { db: { schema: DB_SCHEMA as never } } : {}),
   global: { fetch: createSupabaseFetch(key) },
   auth: {
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
@@ -67,3 +82,27 @@ export const supabase = createClient<Database>(url, key, {
     autoRefreshToken: true,
   },
 });
+
+/**
+ * Aplica o prefixo em `.from()` e `.rpc()` de forma transparente: o resto do
+ * código continua escrevendo `.from("brand_profiles")` sem saber de nada.
+ */
+export const supabase = DB_SCHEMA
+  ? rawClient
+  : TABLE_PREFIX
+  ? (new Proxy(rawClient, {
+      get(target, prop, receiver) {
+        if (prop === 'from') {
+          return (table: string) => target.from(`${TABLE_PREFIX}${table}` as never);
+        }
+        if (prop === 'rpc') {
+          return (fn: string, args?: unknown, opts?: unknown) =>
+            (target.rpc as unknown as (f: string, a?: unknown, o?: unknown) => unknown)(
+              `${TABLE_PREFIX}${fn}`, args, opts,
+            );
+        }
+        const value = Reflect.get(target, prop, receiver);
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    }) as typeof rawClient)
+  : rawClient;
