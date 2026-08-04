@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useBrands } from "@/hooks/use-brands";
 import {
   generateContent, generateOpenAiImage, aiAssist, extractSource,
-  callHiggsfield, hfStatus, type HfGenerationResult, type GenerateContentResult,
+  callHiggsfield, hfStatus, gerarArtePosterSlide, type HfGenerationResult, type GenerateContentResult,
 } from "@/lib/api";
 import { brandImageDirective, brandTextProfile, brandTextHint, brandVideoDirective, brandVoiceDirective, type BrandProfile } from "@/lib/brand";
 import { HF_VIDEO_MODELS } from "@/lib/higgsfield-models";
@@ -126,30 +126,37 @@ export function AutoStudio({ onEditInCanvas }: { onEditInCanvas: (doc: StudioDoc
   const [refName, setRefName] = useState("");
   const [dragging, setDragging] = useState(false);
 
-  const aceitarArquivo = (file?: File | null) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Envie um arquivo de imagem (jpg, png…).");
-      return;
-    }
-    if (file.size > 20 * 1024 * 1024) {
-      toast.error("Imagem muito grande. Use uma de até 20 MB.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setRefImage(String(reader.result));
-      setRefName(file.name);
-      toast.success("Foto adicionada — a IA vai usar como base.");
-    };
-    reader.onerror = () => toast.error("Não consegui ler o arquivo.");
-    reader.readAsDataURL(file);
+  /** Aceita uma ou várias imagens de uma vez (clique ou arraste). */
+  const aceitarArquivos = (lista?: FileList | File[] | null) => {
+    const files = Array.from(lista || []);
+    if (!files.length) return;
+
+    let ignoradas = 0;
+    files.forEach((file) => {
+      if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024) {
+        ignoradas++;
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setRefImages((atual) => {
+          // Teto de 6: acima disso o pedido fica pesado demais para a IA.
+          if (atual.length >= 6) return atual;
+          return [...atual, { src: String(reader.result), name: file.name }];
+        });
+      };
+      reader.onerror = () => toast.error(`Não consegui ler "${file.name}".`);
+      reader.readAsDataURL(file);
+    });
+
+    if (ignoradas) toast.error(`${ignoradas} arquivo(s) ignorado(s) — só imagens de até 20 MB.`);
+    else toast.success(files.length > 1 ? `${files.length} fotos adicionadas.` : "Foto adicionada.");
   };
 
   const onPickReference = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = e.target.files;
+    aceitarArquivos(files);
     e.target.value = "";
-    aceitarArquivo(file);
   };
   const [formatChoice, setFormatChoice] = useState<FormatChoice>("auto");
   const [slideCount, setSlideCount] = useState(6);
@@ -277,7 +284,7 @@ export function AutoStudio({ onEditInCanvas }: { onEditInCanvas: (doc: StudioDoc
     ].filter(Boolean).join("\n\n");
     const { images } = await generateOpenAiImage({
       prompt: imgPrompt, size, quality: "medium", n: 1,
-      ...(refImage ? { referenceImage: refImage } : {}),
+      ...(refImages.length ? { referenceImages: refImages.map((r) => r.src) } : {}),
     });
     const raw = images?.[0];
     if (!raw) return undefined;
@@ -413,6 +420,21 @@ Responda APENAS JSON: { "narracao": "<fala completa em pt-BR>", "cena": "<descri
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao refazer o roteiro");
     } finally { setGenerating(false); setProgress(""); }
+  };
+
+  const gerarArteIA = async () => {
+    if (!prompt.trim()) { toast.error("Descreva o que você quer criar."); return; }
+    setGenerating(true); setProgress("Criando a arte com IA (pode levar ~15s)…"); setDoc(null);
+    try {
+      const marca = brand ? { name: brand.name, colors: brand.colors, tone: brand.tone, typography: brand.typography } : undefined;
+      const slide = await gerarArtePosterSlide(prompt.trim(), marca);
+      const base = emptyDoc("post", brandId);
+      onEditInCanvas({ ...base, slides: [slide], caption: prompt.trim() });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não consegui gerar a arte.");
+    } finally {
+      setGenerating(false); setProgress("");
+    }
   };
 
   const handleGenerate = async () => {
@@ -574,7 +596,7 @@ Responda APENAS JSON: { "narracao": "<fala completa em pt-BR>", "cena": "<descri
 
       // Registra no histórico ("Logs") o caminho que a IA percorreu.
       const materiais: string[] = [...materiaisUsados];
-      if (refImage) materiais.push(`Foto enviada por você (${refName || "imagem"})`);
+      refImages.forEach((r) => materiais.push(`Foto enviada por você (${r.name})`));
       void logActivity({
         action: "gerar_texto",
         title: slides.length > 1 ? "Carrossel criado" : "Publicação criada",
@@ -719,45 +741,68 @@ Responda APENAS JSON: { "narracao": "<fala completa em pt-BR>", "cena": "<descri
           onDrop={(e) => {
             e.preventDefault();
             setDragging(false);
-            aceitarArquivo(e.dataTransfer.files?.[0]);
+            aceitarArquivos(e.dataTransfer.files);
           }}
           className={`rounded-2xl border border-dashed p-3 transition-colors ${
             dragging ? "border-primary bg-primary/5" : "border-border"
           }`}
         >
-          {refImage ? (
-            <div className="flex items-center gap-3">
-              <img
-                src={refImage}
-                alt="Referência"
-                className="h-16 w-16 rounded-lg object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{refName || "Foto de referência"}</p>
-                <p className="text-xs text-muted-foreground">
-                  A IA vai partir desta foto para criar.
-                </p>
+          {refImages.length > 0 ? (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
+                {refImages.map((r, i) => (
+                  <div key={i} className="group relative">
+                    <img
+                      src={r.src}
+                      alt={r.name}
+                      title={r.name}
+                      className="h-16 w-16 rounded-lg object-cover"
+                    />
+                    <button
+                      type="button"
+                      disabled={generating}
+                      onClick={() => setRefImages((a) => a.filter((_, j) => j !== i))}
+                      className="absolute -right-1.5 -top-1.5 rounded-full bg-destructive p-0.5 text-destructive-foreground opacity-0 transition group-hover:opacity-100"
+                      aria-label={`Remover ${r.name}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+
+                {/* Continua dando para somar mais, até o teto de 6. */}
+                {refImages.length < 6 && (
+                  <label className="flex h-16 w-16 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border border-dashed text-muted-foreground hover:bg-accent">
+                    <input
+                      type="file" accept="image/*" multiple className="hidden"
+                      disabled={generating} onChange={onPickReference}
+                    />
+                    <ImagePlus className="h-4 w-4" />
+                    <span className="text-[10px]">mais</span>
+                  </label>
+                )}
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => { setRefImage(null); setRefName(""); }}
-                disabled={generating}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {refImages.length} foto{refImages.length > 1 ? "s" : ""} de referência — a IA vai partir dela{refImages.length > 1 ? "s" : ""}.
+                </p>
+                <Button
+                  variant="ghost" size="sm" className="h-6 text-xs"
+                  disabled={generating}
+                  onClick={() => setRefImages([])}
+                >
+                  Limpar
+                </Button>
+              </div>
             </div>
           ) : (
             <label className="flex cursor-pointer items-center justify-center gap-2 py-2 text-sm text-muted-foreground hover:text-foreground">
               <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={generating}
-                onChange={onPickReference}
+                type="file" accept="image/*" multiple className="hidden"
+                disabled={generating} onChange={onPickReference}
               />
               <ImagePlus className="h-4 w-4" />
-              {dragging ? "Solte a imagem aqui" : "Arraste uma foto aqui ou clique para escolher"}
+              {dragging ? "Solte as imagens aqui" : "Arraste fotos aqui ou clique para escolher"}
               <span className="text-xs">(opcional)</span>
             </label>
           )}
@@ -912,6 +957,18 @@ Responda APENAS JSON: { "narracao": "<fala completa em pt-BR>", "cena": "<descri
         ) : (
           <Button className="w-full rounded-full" size="lg" onClick={handleGenerate} disabled={generating || !prompt.trim()}>
             {generating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {progress || "Gerando…"}</> : <><Sparkles className="mr-2 h-4 w-4" /> Criar</>}
+          </Button>
+        )}
+        {formatChoice !== "video" && (
+          <Button
+            variant="outline"
+            className="w-full rounded-full border-emerald-500 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+            size="lg"
+            onClick={gerarArteIA}
+            disabled={generating || !prompt.trim()}
+            title="A IA cria a arte inteira, com o texto já dentro da imagem (Ideogram/fal). Fica linda e pronta pra postar — mas NÃO é editável aqui. Pra editar, use o botão 'Editar no Canva'."
+          >
+            <Sparkles className="mr-2 h-4 w-4" /> Arte pronta com IA (não editável)
           </Button>
         )}
         {brand?.name

@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Type, Image as ImageIcon, Square, Plus, Copy, Trash2, ChevronLeft, ChevronRight, Film, ZoomIn, ZoomOut, Maximize , Layers, Loader2} from "lucide-react";
+  Type, Image as ImageIcon, Square, Plus, Copy, Trash2, ChevronLeft, ChevronRight, Film, ZoomIn, ZoomOut, Maximize , Loader2} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { separarCamadas } from "@/lib/api";
-import { recortarCamadas, urlPublica } from "@/lib/camadas";
 import { useBrands } from "@/hooks/use-brands";
 import { useStudio, blankSlide } from "./StudioProvider";
 import { CANVAS_W, CANVAS_H, EXPORT_W, EXPORT_H, SNAP, uid, type El, type Slide } from "./types";
@@ -131,58 +129,6 @@ export function DesignCanvas() {
    * cada um como elemento de imagem — aí dá para mover a pizza sem levar
    * o fundo junto.
    */
-  const [separando, setSeparando] = useState(false);
-
-  const descolarCamadas = async () => {
-    const sl = doc.slides[currentSlide];
-    if (!sl?.bgImage) return;
-
-    setSeparando(true);
-    try {
-      const publica = await urlPublica(sl.bgImage);
-      const { mascaras } = await separarCamadas({ imageUrl: publica });
-      const camadas = await recortarCamadas(publica, mascaras);
-
-      if (!camadas.length) {
-        toast.error("Não encontrei objetos separáveis nesta imagem.");
-        return;
-      }
-
-      pushHistory();
-
-      // As camadas vêm em pixels da imagem original; convertemos para as
-      // coordenadas do canvas para caírem no lugar certo.
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      await new Promise<void>((ok, fail) => {
-        img.onload = () => ok();
-        img.onerror = () => fail(new Error("Falha ao medir a imagem."));
-        img.src = publica;
-      });
-      const kx = CANVAS_W / img.naturalWidth;
-      const ky = CANVAS_H / img.naturalHeight;
-
-      const novos: El[] = camadas.map((c) => ({
-        id: uid(),
-        type: "image" as const,
-        src: c.src,
-        x: Math.round(c.x * kx),
-        y: Math.round(c.y * ky),
-        w: Math.max(12, Math.round(c.w * kx)),
-        h: Math.max(12, Math.round(c.h * ky)),
-        radius: 0,
-      }));
-
-      setSlides(doc.slides.map((s2, i) =>
-        i === currentSlide ? { ...s2, els: [...novos, ...s2.els] } : s2,
-      ));
-      toast.success(`${camadas.length} camada(s) separada(s). Agora dá para mover cada uma.`);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Não consegui separar as camadas.");
-    } finally {
-      setSeparando(false);
-    }
-  };
 
   /**
    * Alterna entre preencher o quadro (pode cortar) e mostrar a imagem
@@ -476,28 +422,6 @@ export function DesignCanvas() {
               <Maximize className="mr-1 h-3.5 w-3.5" />
               {doc.slides[currentSlide]?.bgFit === "contain" ? "Preencher" : "Sem cortar"}
             </Button>
-            {/* Novidade: destacado em violeta para não se perder entre os
-                demais botões da barra, com selo "novo". */}
-            <div className="relative">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 border-violet-500 text-xs text-violet-700 hover:bg-violet-50 hover:text-violet-800"
-                title="Separa os objetos da arte em camadas móveis — dá para mover a pizza sem levar o fundo"
-                disabled={separando}
-                onClick={descolarCamadas}
-              >
-                {separando
-                  ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                  : <Layers className="mr-1 h-3.5 w-3.5" />}
-                {separando ? "Separando…" : "Descolar camadas"}
-              </Button>
-              {!separando && (
-                <span className="pointer-events-none absolute -right-1.5 -top-2 rounded-full bg-violet-500 px-1.5 py-px text-[9px] font-bold uppercase leading-tight tracking-wide text-white shadow-sm">
-                  novo
-                </span>
-              )}
-            </div>
           </>
         )}
       </div>
